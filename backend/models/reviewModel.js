@@ -12,6 +12,18 @@ export const getAllReviews = async () => {
     return rows;
 };
 
+// Get review by ID
+export const getReviewById = async (id) => {
+    const [rows] = await pool.query(
+        `SELECT r.*, e.first_name, e.last_name 
+         FROM performance_reviews r
+         JOIN employees e ON r.emp_id = e.emp_id
+         WHERE r.review_id = ?`,
+        [id]
+    );
+    return rows[0];
+};
+
 // Get reviews by employee ID
 export const getReviewsByEmployee = async (empId) => {
     const [rows] = await pool.query(
@@ -35,6 +47,20 @@ export const createReview = async (reviewData) => {
          goals_for_next_period || null, comments || null, status || 'draft']
     );
     return result.insertId;
+};
+
+// Update review
+export const updateReview = async (id, reviewData) => {
+    const { rating, performance_score, strengths, areas_for_improvement, goals_for_next_period, comments, status } = reviewData;
+    const [result] = await pool.query(
+        `UPDATE performance_reviews 
+         SET rating = ?, performance_score = ?, strengths = ?, areas_for_improvement = ?, 
+             goals_for_next_period = ?, comments = ?, status = ?
+         WHERE review_id = ?`,
+        [rating, performance_score || null, strengths || null, areas_for_improvement || null,
+         goals_for_next_period || null, comments || null, status || 'draft', id]
+    );
+    return result.affectedRows;
 };
 
 // Delete review

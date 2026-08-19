@@ -11,38 +11,51 @@ export const getReviews = async (req, res) => {
     }
 };
 
+// GET /api/reviews/:id
+export const getReviewById = async (req, res) => {
+    try {
+        const review = await reviewModel.getReviewById(req.params.id);
+        if (!review) {
+            return res.status(404).json({ success: false, error: 'Review not found' });
+        }
+        res.json({ success: true, data: review });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+};
+
 // POST /api/reviews
-export const addReview = async (req, res) => {
+export const createReview = async (req, res) => {
     try {
         const { emp_id, reviewer_id, review_date, review_period_start, review_period_end, rating, performance_score, strengths, areas_for_improvement, goals_for_next_period, comments, status } = req.body;
 
         if (!emp_id || !reviewer_id || !review_date || !rating) {
-            return res.status(400).json({
-                success: false,
-                error: 'emp_id, reviewer_id, review_date, and rating are required'
-            });
+            return res.status(400).json({ success: false, error: 'emp_id, reviewer_id, review_date, and rating are required' });
         }
 
         const id = await reviewModel.createReview({
-            emp_id,
-            reviewer_id,
-            review_date,
-            review_period_start,
-            review_period_end,
-            rating,
-            performance_score,
-            strengths,
-            areas_for_improvement,
-            goals_for_next_period,
-            comments,
-            status
+            emp_id, reviewer_id, review_date, review_period_start, review_period_end,
+            rating, performance_score, strengths, areas_for_improvement, goals_for_next_period, comments, status
         });
 
-        res.status(201).json({
-            success: true,
-            message: 'Review created successfully',
-            data: { review_id: id }
+        res.status(201).json({ success: true, message: 'Review created successfully', data: { review_id: id } });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+};
+
+// PUT /api/reviews/:id
+export const updateReview = async (req, res) => {
+    try {
+        const { rating, performance_score, strengths, areas_for_improvement, goals_for_next_period, comments, status } = req.body;
+        const affectedRows = await reviewModel.updateReview(req.params.id, {
+            rating, performance_score, strengths, areas_for_improvement, goals_for_next_period, comments, status
         });
+
+        if (affectedRows === 0) {
+            return res.status(404).json({ success: false, error: 'Review not found' });
+        }
+        res.json({ success: true, message: 'Review updated successfully' });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
     }

@@ -4,7 +4,7 @@ import pool from '../config/database.js';
 // Get all timeoff with employee names
 export const getAllTimeoff = async () => {
     const [rows] = await pool.query(
-        `SELECT t.*, e.first_name, e.last_name 
+        `SELECT t.*, e.first_name, e.last_name, e.department, e.position 
          FROM timeoff t
          JOIN employees e ON t.emp_id = e.emp_id
          ORDER BY t.request_date DESC`
@@ -60,6 +60,27 @@ export const denyTimeoff = async (id, approverId, denialReason) => {
          SET status = 'denied', approver_id = ?, approved_date = NOW(), denial_reason = ?
          WHERE timeoff_id = ? AND status = 'pending'`,
         [approverId, denialReason || null, id]
+    );
+    return result.affectedRows;
+};
+
+// Cancel timeoff request
+export const cancelTimeoff = async (id) => {
+    const [result] = await pool.query(
+        `UPDATE timeoff 
+         SET status = 'cancelled'
+         WHERE timeoff_id = ? AND status = 'pending'`,
+        [id]
+    );
+    return result.affectedRows;
+};
+
+// Auto-deny old pending requests
+export const cleanupOldRequests = async () => {
+    const [result] = await pool.query(
+        `UPDATE timeoff 
+         SET status = 'denied', denial_reason = 'Automatically rejected (past date)'
+         WHERE status = 'pending' AND start_date < CURDATE()`
     );
     return result.affectedRows;
 };

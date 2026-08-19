@@ -4,7 +4,7 @@ import pool from '../config/database.js';
 // Get all attendance with employee names
 export const getAllAttendance = async () => {
     const [rows] = await pool.query(
-        `SELECT a.*, e.first_name, e.last_name 
+        `SELECT a.*, e.first_name, e.last_name, e.department, e.position 
          FROM attendance a
          JOIN employees e ON a.emp_id = e.emp_id
          ORDER BY a.attendance_date DESC`
@@ -40,6 +40,27 @@ export const createAttendance = async (attendanceData) => {
         [emp_id, attendance_date, status, check_in_time || null, check_out_time || null, hours_worked || null, notes || null, recorded_by]
     );
     return result.insertId;
+};
+
+// Update attendance record
+export const updateAttendance = async (id, attendanceData) => {
+    const { status, check_in_time, check_out_time, hours_worked, notes } = attendanceData;
+    const [result] = await pool.query(
+        `UPDATE attendance 
+         SET status = ?, check_in_time = ?, check_out_time = ?, hours_worked = ?, notes = ?
+         WHERE attendance_id = ?`,
+        [status, check_in_time || null, check_out_time || null, hours_worked || null, notes || null, id]
+    );
+    return result.affectedRows;
+};
+
+// Delete attendance record
+export const deleteAttendance = async (id) => {
+    const [result] = await pool.query(
+        'DELETE FROM attendance WHERE attendance_id = ?',
+        [id]
+    );
+    return result.affectedRows;
 };
 
 // Get attendance for date range

@@ -62,3 +62,12 @@ export const updatePayroll = async (id, payrollData) => {
     );
     return result.affectedRows;
 };
+
+// Delete payroll
+export const deletePayroll = async (id) => {
+    const [result] = await pool.query(
+        'DELETE FROM payroll WHERE payroll_id = ?',
+        [id]
+    );
+    return result.affectedRows;
+};

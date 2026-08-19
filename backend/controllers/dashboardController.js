@@ -2,7 +2,7 @@
 import * as dashboardModel from '../models/dashboardModel.js';
 
 // GET /api/dashboard/stats
-export const getDashboardStats = async (req, res) => {
+export const getStats = async (req, res) => {
     try {
         const stats = {
             total_employees: await dashboardModel.getTotalEmployees(),
