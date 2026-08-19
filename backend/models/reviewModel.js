@@ -1,0 +1,47 @@
+// Review model - handles review database operations
+import pool from '../config/database.js';
+
+// Get all reviews with employee names
+export const getAllReviews = async () => {
+    const [rows] = await pool.query(
+        `SELECT r.*, e.first_name, e.last_name 
+         FROM performance_reviews r
+         JOIN employees e ON r.emp_id = e.emp_id
+         ORDER BY r.review_date DESC`
+    );
+    return rows;
+};
+
+// Get reviews by employee ID
+export const getReviewsByEmployee = async (empId) => {
+    const [rows] = await pool.query(
+        'SELECT * FROM performance_reviews WHERE emp_id = ? ORDER BY review_date DESC',
+        [empId]
+    );
+    return rows;
+};
+
+// Create review
+export const createReview = async (reviewData) => {
+    const { emp_id, reviewer_id, review_date, review_period_start, review_period_end, rating, performance_score, strengths, areas_for_improvement, goals_for_next_period, comments, status } = reviewData;
+    const [result] = await pool.query(
+        `INSERT INTO performance_reviews 
+         (emp_id, reviewer_id, review_date, review_period_start, review_period_end, 
+          rating, performance_score, strengths, areas_for_improvement, 
+          goals_for_next_period, comments, status)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [emp_id, reviewer_id, review_date, review_period_start || null, review_period_end || null,
+         rating, performance_score || null, strengths || null, areas_for_improvement || null,
+         goals_for_next_period || null, comments || null, status || 'draft']
+    );
+    return result.insertId;
+};
+
+// Delete review
+export const deleteReview = async (id) => {
+    const [result] = await pool.query(
+        'DELETE FROM performance_reviews WHERE review_id = ?',
+        [id]
+    );
+    return result.affectedRows;
+};
