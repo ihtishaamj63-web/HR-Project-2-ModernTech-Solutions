@@ -10,7 +10,7 @@ const api = axios.create({
   },
 });
 
-// Request Interceptor: Start loading spinner
+// Request Interceptor: Start loading timer
 api.interceptors.request.use((config) => {
   startLoading();
   
@@ -25,7 +25,7 @@ api.interceptors.request.use((config) => {
   return Promise.reject(error);
 });
 
-// Response Interceptor: Stop loading spinner
+// Response Interceptor: Stop loading timer
 api.interceptors.response.use((response) => {
   stopLoading();
   return response;

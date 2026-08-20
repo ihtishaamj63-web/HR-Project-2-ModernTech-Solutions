@@ -6,9 +6,20 @@ export const loadingState = reactive({
   requestCount: 0
 });
 
+let loadingTimer = null;
+
 export function startLoading() {
   loadingState.requestCount++;
-  loadingState.isLoading = true;
+  
+  // FIX: Only show the overlay if the request takes longer than 800ms
+  // This prevents the screen from flashing on quick page navigations
+  if (!loadingTimer && !loadingState.isLoading) {
+    loadingTimer = setTimeout(() => {
+      if (loadingState.requestCount > 0) {
+        loadingState.isLoading = true;
+      }
+    }, 800);
+  }
 }
 
 export function stopLoading() {
@@ -16,5 +27,11 @@ export function stopLoading() {
   if (loadingState.requestCount <= 0) {
     loadingState.requestCount = 0;
     loadingState.isLoading = false;
+    
+    // Clear the timer if the request finished before 800ms
+    if (loadingTimer) {
+      clearTimeout(loadingTimer);
+      loadingTimer = null;
+    }
   }
 }
