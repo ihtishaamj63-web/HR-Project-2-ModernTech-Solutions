@@ -1,10 +1,25 @@
 // Payroll controller - handles payroll request/response logic
+import pool from '../config/database.js';
 import * as payrollModel from '../models/payrollModel.js';
 
 // GET /api/payroll
 export const getPayroll = async (req, res) => {
     try {
-        const payroll = await payrollModel.getAllPayroll();
+        let payroll;
+        
+        if (req.user.role === 'employee') {
+            const [empRows] = await pool.query('SELECT emp_id FROM employees WHERE email = ?', [req.user.email]);
+            const empId = empRows[0]?.emp_id;
+            if (empId) {
+                const data = await payrollModel.getPayrollByEmployee(empId);
+                payroll = data ? [data] : []; // Wrap in array for frontend mapping
+            } else {
+                payroll = [];
+            }
+        } else {
+            payroll = await payrollModel.getAllPayroll();
+        }
+
         res.json({ success: true, data: payroll });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });

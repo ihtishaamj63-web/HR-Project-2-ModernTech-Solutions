@@ -38,21 +38,14 @@
 
     <!-- STATISTICS -->
     <section class="dash-stats">
-      <!-- TOTAL EMPLOYEES -->
-      <div class="dash-stat-card">
+      <!-- TOTAL EMPLOYEES / PROFILE -->
+      <div class="dash-stat-card" v-if="isHR">
         <div class="dash-stat-icon blue">
           <i class="bi bi-people-fill"></i>
         </div>
-
         <h4>Total Employees</h4>
-
         <h2>{{ stats.total_employees || 0 }}</h2>
-
-        <a
-          href="#"
-          @click.prevent="router.push('/employees')"
-          class="dash-stat-link blue-link"
-        >
+        <a href="#" @click.prevent="router.push('/employees')" class="dash-stat-link blue-link">
           View Employees →
         </a>
       </div>
@@ -62,18 +55,10 @@
         <div class="dash-stat-icon purple">
           <i class="bi bi-calendar-check-fill"></i>
         </div>
-
-        <h4>Attendance Rate</h4>
-
+        <h4>{{ isHR ? 'Attendance Rate' : 'My Attendance' }}</h4>
         <h2>{{ stats.attendance_rate || 0 }}%</h2>
-
         <p>This Week</p>
-
-        <a
-          href="#"
-          @click.prevent="router.push('/attendance')"
-          class="dash-stat-link purple-link"
-        >
+        <a href="#" @click.prevent="router.push('/attendance')" class="dash-stat-link purple-link">
           View Attendance →
         </a>
       </div>
@@ -83,18 +68,10 @@
         <div class="dash-stat-icon orange">
           <i class="bi bi-clock-fill"></i>
         </div>
-
-        <h4>Pending Requests</h4>
-
+        <h4>{{ isHR ? 'Pending Requests' : 'My Pending Leave' }}</h4>
         <h2>{{ stats.pending_timeoff || 0 }}</h2>
-
         <p>Time Off</p>
-
-        <a
-          href="#"
-          @click.prevent="router.push('/timeoff')"
-          class="dash-stat-link orange-link"
-        >
+        <a href="#" @click.prevent="router.push('/timeoff')" class="dash-stat-link orange-link">
           Manage Requests →
         </a>
       </div>
@@ -104,18 +81,10 @@
         <div class="dash-stat-icon green">
           <i class="bi bi-star-fill"></i>
         </div>
-
-        <h4>Completed Reviews</h4>
-
+        <h4>{{ isHR ? 'Completed Reviews' : 'My Reviews' }}</h4>
         <h2>{{ stats.total_reviews || 0 }}</h2>
-
         <p>This Quarter</p>
-
-        <a
-          href="#"
-          @click.prevent="router.push('/reviews')"
-          class="dash-stat-link green-link"
-        >
+        <a href="#" @click.prevent="router.push('/reviews')" class="dash-stat-link green-link">
           View Reviews →
         </a>
       </div>
@@ -125,27 +94,17 @@
         <div class="dash-stat-icon blue">
           <i class="bi bi-cash-stack"></i>
         </div>
-
-        <h4>Payroll Summary</h4>
-
-        <h2>
-          R {{ Number(stats.payroll_total || 0).toLocaleString("en-ZA") }}
-        </h2>
-
-        <p>{{ stats.employees_paid || 0 }} Employees Paid</p>
-
-        <a
-          href="#"
-          @click.prevent="router.push('/payroll')"
-          class="dash-stat-link blue-link"
-        >
+        <h4>{{ isHR ? 'Payroll Summary' : 'My Net Pay' }}</h4>
+        <h2>R {{ Number(stats.payroll_total || 0).toLocaleString("en-ZA") }}</h2>
+        <p>{{ isHR ? (stats.total_employees || 0) + ' Employees Paid' : 'Monthly Projection' }}</p>
+        <a href="#" @click.prevent="router.push('/payroll')" class="dash-stat-link blue-link">
           Open Payroll →
         </a>
       </div>
     </section>
 
     <!-- ATTENDANCE CHART -->
-    <div class="dash-chart-card">
+    <div class="dash-chart-card" v-if="isHR">
       <div class="dash-chart-header">
         <h2>This Week at a Glance</h2>
 
@@ -272,7 +231,7 @@
     </div>
 
     <!-- TWO COLUMN -->
-    <div class="dash-two-col">
+    <div class="dash-two-col" v-if="isHR">
 
       <!-- TIME OFF -->
       <section class="dash-reviews">
@@ -459,26 +418,37 @@ function getBarHeight(value) {
 }
 
 /* =========================
-   STATUS
+   HELPER FORMATTERS
 ========================= */
+
+function formatLeaveType(type) {
+  if (!type) return "Annual";
+  const typeMap = {
+    'vacation': 'Vacation',
+    'sick_leave': 'Sick Leave',
+    'personal': 'Personal',
+    'unpaid_leave': 'Unpaid Leave'
+  };
+  return typeMap[type.toLowerCase()] || type.charAt(0).toUpperCase() + type.slice(1);
+}
+
+function formatDisplayDate(dateString) {
+  if (!dateString) return "";
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return dateString;
+  return date.toLocaleDateString("en-ZA", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric"
+  });
+}
 
 function getStatusClass(status) {
   if (!status) return "";
-
   const value = status.toLowerCase();
-
-  if (value === "approved") {
-    return "approved";
-  }
-
-  if (value === "denied") {
-    return "denied";
-  }
-
-  if (value === "pending") {
-    return "pending";
-  }
-
+  if (value === "approved") return "approved";
+  if (value === "denied") return "denied";
+  if (value === "pending") return "pending";
   return "";
 }
 
@@ -514,15 +484,10 @@ async function loadTimeOff() {
         employee:
           item.employee_name ||
           item.name ||
+          `${item.first_name || ''} ${item.last_name || ''}` ||
           `Employee ${item.emp_id}`,
-        type:
-          item.timeoff_type ||
-          item.type ||
-          "Annual",
-        date:
-          item.start_date ||
-          item.date ||
-          "",
+        type: formatLeaveType(item.timeoff_type || item.type),
+        date: formatDisplayDate(item.start_date || item.date),
         status:
           item.status
             ? item.status.charAt(0).toUpperCase() +
@@ -551,6 +516,7 @@ async function loadReviews() {
         name:
           item.employee_name ||
           item.name ||
+          `${item.emp_first_name || ''} ${item.emp_last_name || ''}` ||
           "Unknown Employee",
         department:
           item.department ||
@@ -614,7 +580,8 @@ async function loadAttendance() {
           absent[index]++;
         } else if (
           status === "leave" ||
-          status === "on leave"
+          status === "on leave" ||
+          status === "on_leave"
         ) {
           leave[index]++;
         }

@@ -1,7 +1,6 @@
 // Review model - handles review database operations
 import pool from '../config/database.js';
 
-// Get all reviews with employee names
 // Get all reviews with employee and reviewer names
 export const getAllReviews = async () => {
     const [rows] = await pool.query(
@@ -21,19 +20,33 @@ export const getAllReviews = async () => {
 // Get review by ID
 export const getReviewById = async (id) => {
     const [rows] = await pool.query(
-        `SELECT r.*, e.first_name, e.last_name 
+        `SELECT r.*, 
+                e.first_name AS emp_first_name, 
+                e.last_name AS emp_last_name, 
+                u.first_name AS rev_first_name, 
+                u.last_name AS rev_last_name 
          FROM performance_reviews r
          JOIN employees e ON r.emp_id = e.emp_id
+         JOIN users u ON r.reviewer_id = u.user_id
          WHERE r.review_id = ?`,
         [id]
     );
     return rows[0];
 };
 
-// Get reviews by employee ID
+// Get reviews by employee ID (with names)
 export const getReviewsByEmployee = async (empId) => {
     const [rows] = await pool.query(
-        'SELECT * FROM performance_reviews WHERE emp_id = ? ORDER BY review_date DESC',
+        `SELECT r.*, 
+                e.first_name AS emp_first_name, 
+                e.last_name AS emp_last_name, 
+                u.first_name AS rev_first_name, 
+                u.last_name AS rev_last_name 
+         FROM performance_reviews r
+         JOIN employees e ON r.emp_id = e.emp_id
+         JOIN users u ON r.reviewer_id = u.user_id
+         WHERE r.emp_id = ? 
+         ORDER BY r.review_date DESC`,
         [empId]
     );
     return rows;

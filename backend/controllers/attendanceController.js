@@ -1,10 +1,24 @@
 // Attendance controller - handles attendance request/response logic
+import pool from '../config/database.js';
 import * as attendanceModel from '../models/attendanceModel.js';
 
 // GET /api/attendance
 export const getAttendance = async (req, res) => {
     try {
-        const attendance = await attendanceModel.getAllAttendance();
+        let attendance;
+        
+        if (req.user.role === 'employee') {
+            const [empRows] = await pool.query('SELECT emp_id FROM employees WHERE email = ?', [req.user.email]);
+            const empId = empRows[0]?.emp_id;
+            if (empId) {
+                attendance = await attendanceModel.getAttendanceByEmployee(empId);
+            } else {
+                attendance = [];
+            }
+        } else {
+            attendance = await attendanceModel.getAllAttendance();
+        }
+
         res.json({ success: true, data: attendance });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });

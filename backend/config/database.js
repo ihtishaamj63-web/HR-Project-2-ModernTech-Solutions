@@ -4,12 +4,6 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-// FIX: Configure SSL for Aiven. Only applies if DB_SSL_CA is provided.
-const sslConfig = process.env.DB_SSL_CA ? {
-  rejectUnauthorized: true,
-  ca: process.env.DB_SSL_CA
-} : {};
-
 let pool;
 
 if (process.env.DATABASE_URL) {
@@ -26,9 +20,7 @@ if (process.env.DATABASE_URL) {
     queueLimit: 0,
     // FIX: Keep connections alive to prevent morning timeouts
     enableKeepAlive: true,
-    keepAliveInitialDelay: 10000,
-    // FIX: Add SSL configuration for Aiven
-    ssl: sslConfig
+    keepAliveInitialDelay: 10000
   });
 }
 

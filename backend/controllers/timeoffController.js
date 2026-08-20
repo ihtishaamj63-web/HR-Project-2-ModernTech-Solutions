@@ -1,10 +1,24 @@
 // Timeoff controller - handles timeoff request/response logic
+import pool from '../config/database.js';
 import * as timeoffModel from '../models/timeoffModel.js';
 
 // GET /api/timeoff
 export const getTimeoff = async (req, res) => {
     try {
-        const timeoff = await timeoffModel.getAllTimeoff();
+        let timeoff;
+        
+        if (req.user.role === 'employee') {
+            const [empRows] = await pool.query('SELECT emp_id FROM employees WHERE email = ?', [req.user.email]);
+            const empId = empRows[0]?.emp_id;
+            if (empId) {
+                timeoff = await timeoffModel.getTimeoffByEmployee(empId);
+            } else {
+                timeoff = [];
+            }
+        } else {
+            timeoff = await timeoffModel.getAllTimeoff();
+        }
+
         res.json({ success: true, data: timeoff });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });

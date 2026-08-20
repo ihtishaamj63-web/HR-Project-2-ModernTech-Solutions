@@ -12,10 +12,14 @@ export const getAllTimeoff = async () => {
     return rows;
 };
 
-// Get timeoff by employee ID
+// Get timeoff by employee ID (with names)
 export const getTimeoffByEmployee = async (empId) => {
     const [rows] = await pool.query(
-        'SELECT * FROM timeoff WHERE emp_id = ? ORDER BY request_date DESC',
+        `SELECT t.*, e.first_name, e.last_name, e.department, e.position 
+         FROM timeoff t
+         JOIN employees e ON t.emp_id = e.emp_id
+         WHERE t.emp_id = ? 
+         ORDER BY t.request_date DESC`,
         [empId]
     );
     return rows;
