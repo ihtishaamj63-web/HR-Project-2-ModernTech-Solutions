@@ -98,10 +98,16 @@ const passwordForm = ref({
 
 // FIX: Display the specific job position instead of the generic role
 const formattedRole = computed(() => {
-  if (state.user?.position) return state.user.position;
+  // If the user object has a position, use it!
+  if (state.user?.position) {
+    return state.user.position;
+  }
   
-  // Fallback mapping just in case position is missing
-  if (state.user?.role === 'hr_staff' || state.user?.role === 'admin') return 'Human Resources';
+  // Fallback mapping just in case position is missing from the token
+  if (state.user?.role === 'hr_staff' || state.user?.role === 'admin') {
+    return 'Human Resources';
+  }
+  
   return 'Team Member';
 });
 

@@ -6,7 +6,7 @@ export const findUserByUsername = async (username) => {
     const [rows] = await pool.query(
         `SELECT u.*, e.position 
          FROM users u 
-         LEFT JOIN employees e ON u.user_id = e.user_id 
+         LEFT JOIN employees e ON u.email = e.email 
          WHERE u.username = ? AND u.is_active = TRUE`,
         [username]
     );
