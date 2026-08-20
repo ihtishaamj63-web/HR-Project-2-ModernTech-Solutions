@@ -2,6 +2,7 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
+import pool from '../config/database.js';
 import * as authModel from '../models/authModel.js';
 
 dotenv.config();
@@ -30,7 +31,13 @@ export const login = async (req, res) => {
         await authModel.updateLastLogin(user.user_id);
 
         const token = jwt.sign(
-            { user_id: user.user_id, username: user.username, email: user.email, role: user.role },
+            { 
+                user_id: user.user_id, 
+                username: user.username, 
+                email: user.email, 
+                role: user.role,
+                position: user.position || 'Employee' // FIX: Include position in token
+            },
             process.env.JWT_SECRET || 'modernTechSecretKey2026',
             { expiresIn: '24h' }
         );
@@ -45,7 +52,8 @@ export const login = async (req, res) => {
                     email: user.email,
                     first_name: user.first_name,
                     last_name: user.last_name,
-                    role: user.role
+                    role: user.role,
+                    position: user.position || 'Employee' // FIX: Send position to frontend
                 }
             }
         });

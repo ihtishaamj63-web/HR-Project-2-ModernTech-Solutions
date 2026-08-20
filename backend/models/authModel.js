@@ -1,11 +1,13 @@
 // Auth model - handles user database operations
 import pool from '../config/database.js';
-import bcrypt from 'bcryptjs';
 
-// Find user by username
+// Find user by username (with employee position)
 export const findUserByUsername = async (username) => {
     const [rows] = await pool.query(
-        'SELECT * FROM users WHERE username = ? AND is_active = TRUE',
+        `SELECT u.*, e.position 
+         FROM users u 
+         LEFT JOIN employees e ON u.user_id = e.user_id 
+         WHERE u.username = ? AND u.is_active = TRUE`,
         [username]
     );
     return rows[0];

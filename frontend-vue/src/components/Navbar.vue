@@ -21,6 +21,12 @@
             <div class="fw-bold">{{ userName }}</div>
             <small>{{ formattedRole }} · ModernTech</small>
           </div>
+          
+          <!-- Change Password Button -->
+          <button class="btn btn-sm btn-outline-light me-2" @click="openPasswordModal" title="Change Password">
+            <i class="bi bi-key-fill"></i>
+          </button>
+
           <button class="btn btn-sm btn-outline-light me-2" @click="$emit('toggle-dark-mode')" title="Toggle Dark Mode">
             <i class="bi" :class="isDarkMode ? 'bi-sun-fill' : 'bi-moon-stars-fill'"></i>
           </button>
@@ -29,12 +35,50 @@
       </div>
     </div>
   </nav>
+
+  <!-- Change Password Modal -->
+  <div class="modal fade" id="changePasswordModal" tabindex="-1" ref="passwordModal">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header" style="background:#272757;color:white;">
+          <h5 class="modal-title"><i class="bi bi-key me-2"></i>Change Password</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <form @submit.prevent="submitNewPassword">
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Current Password</label>
+              <input type="password" class="form-control" v-model="passwordForm.current" required />
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">New Password</label>
+              <input type="password" class="form-control" v-model="passwordForm.new" required minlength="6" />
+              <small class="text-muted">Minimum 6 characters.</small>
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Confirm New Password</label>
+              <input type="password" class="form-control" v-model="passwordForm.confirm" required />
+            </div>
+            <div v-if="passwordError" class="alert alert-danger py-2">{{ passwordError }}</div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary" @click="submitNewPassword" :disabled="changingPassword">
+            <i class="bi bi-check-lg me-1"></i> {{ changingPassword ? 'Saving...' : 'Update Password' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { ref, computed } from 'vue';
 import { useAuth } from '../stores/auth';
 import { useRouter } from 'vue-router';
+import api from '../api/axios';
+import { Modal } from 'bootstrap';
 
 defineProps(['isDarkMode']);
 const emit = defineEmits(['toggle-dark-mode']);
@@ -42,17 +86,66 @@ const emit = defineEmits(['toggle-dark-mode']);
 const { state, logout, userName } = useAuth();
 const router = useRouter();
 
+const passwordModal = ref(null);
+const changingPassword = ref(false);
+const passwordError = ref('');
+
+const passwordForm = ref({
+  current: '',
+  new: '',
+  confirm: ''
+});
+
+// FIX: Display the specific job position instead of the generic role
 const formattedRole = computed(() => {
-  if (!state.user?.role) return 'Employee';
-  return state.user.role
-    .split('_')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
+  if (state.user?.position) return state.user.position;
+  
+  // Fallback mapping just in case position is missing
+  if (state.user?.role === 'hr_staff' || state.user?.role === 'admin') return 'Human Resources';
+  return 'Team Member';
 });
 
 function handleLogout() {
   logout();
   router.push('/login');
+}
+
+function openPasswordModal() {
+  passwordForm.value = { current: '', new: '', confirm: '' };
+  passwordError.value = '';
+  const modal = new Modal(document.getElementById('changePasswordModal'));
+  modal.show();
+}
+
+async function submitNewPassword() {
+  passwordError.value = '';
+  
+  if (passwordForm.value.new !== passwordForm.value.confirm) {
+    passwordError.value = 'New passwords do not match.';
+    return;
+  }
+
+  changingPassword.value = true;
+  try {
+    const response = await api.put('/auth/change-password', {
+      currentPassword: passwordForm.value.current,
+      newPassword: passwordForm.value.new
+    });
+
+    if (response.data.success) {
+      const modal = Modal.getInstance(document.getElementById('changePasswordModal'));
+      if (modal) modal.hide();
+      
+      // Dispatch a global event to trigger the toast notification
+      const event = new CustomEvent('show-toast', { detail: { message: 'Password updated successfully!', type: 'success' } });
+      window.dispatchEvent(event);
+    }
+  } catch (error) {
+    console.error('Password change error:', error);
+    passwordError.value = error.response?.data?.error || 'Failed to update password.';
+  } finally {
+    changingPassword.value = false;
+  }
 }
 </script>
 

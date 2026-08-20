@@ -101,6 +101,15 @@
             <small class="help-text" v-else>The employee will use this to log in for the first time.</small>
           </div>
 
+          <!-- Phone Field -->
+          <div class="emp-form-group emp-workflow-step">
+            <div class="step-label-container">
+              <span class="step-badge" :class="{ 'active': form.phone }">4</span>
+              <label>Phone Number</label>
+            </div>
+            <input type="tel" v-model="form.phone" placeholder="e.g. 0821234567" class="form-control" />
+          </div>
+
           <div class="emp-form-group emp-workflow-step">
             <div class="step-label-container">
               <span class="step-badge" :class="{ 'active': form.startDate }">4</span>
@@ -145,6 +154,7 @@ const form = ref({
   salary: '',
   email: '',
   password: '',
+  phone: '', // Added phone
   startDate: '',
   history: '',
 });
@@ -237,8 +247,9 @@ async function loadEmployee(id) {
       salary: salary,
       email: emp.email,
       password: '', 
+      phone: emp.phone || '', // Load phone
       startDate: emp.hire_date ? emp.hire_date.split('T')[0] : '',
-      history: emp.employment_history || '',
+      history: emp.employment_history || '', // Load history
     };
     
     availablePositions.value = positionMap[form.value.department] || [];
@@ -280,6 +291,7 @@ async function saveEmployee() {
       email: form.value.email,
       hire_date: form.value.startDate,
       employment_history: form.value.history,
+      phone: form.value.phone, // Send phone
     };
 
     if (form.value.password && form.value.password.length >= 6) {

@@ -1,9 +1,8 @@
-DROP DATABASE IF EXISTS ModernTech_Solutions;
 CREATE DATABASE ModernTech_Solutions;
 USE ModernTech_Solutions;
 
 -- ==========================================
--- 1. USERS TABLE (for login authentication)	
+-- 1. USERS TABLE (for login authentication)
 -- ==========================================
 CREATE TABLE users (
     user_id INT PRIMARY KEY AUTO_INCREMENT,
@@ -46,6 +45,7 @@ CREATE TABLE employees (
     position VARCHAR(100) NOT NULL,
     department VARCHAR(100) NOT NULL,
     hire_date DATE NOT NULL,
+    employment_history TEXT NULL, -- FIX: Added column to store employment history
     employment_status ENUM('active', 'on_leave', 'terminated') DEFAULT 'active',
     is_deleted BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -198,11 +198,14 @@ CROSS JOIN (
 ) n
 WHERE e.is_deleted = FALSE;
 
--- Nullify check in/out for absent/on_leave (LIMIT added to bypass Safe Update Mode)
+-- Nullify check in/out for absent/on_leave (Subquery bypasses Safe Update Mode)
 UPDATE attendance 
 SET check_in_time = NULL, check_out_time = NULL, hours_worked = 0 
-WHERE status IN ('absent', 'on_leave') 
-LIMIT 1000;
+WHERE attendance_id IN (
+    SELECT attendance_id FROM (
+        SELECT attendance_id FROM attendance WHERE status IN ('absent', 'on_leave')
+    ) AS temp
+);
 
 -- ==========================================
 -- 7. PERFORMANCE REVIEWS TABLE
