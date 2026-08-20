@@ -211,53 +211,99 @@ function downloadPayslipPDF() {
   const emp = selectedPayslip.value;
 
   const doc = new jsPDF();
+  
+  // Colors matching the app theme
+  const primaryColor = [15, 14, 71]; // #0f0e47
+  const accentColor = [15, 110, 110]; // #0f6e6e
+  const lightGray = [240, 242, 247]; // #f0f2f7
+  const borderColor = [216, 220, 230]; // #d8dce6
+  const textColor = [26, 26, 46]; // #1a1a2e
 
-  // Company heading
+  // 1. HEADER BAND
+  doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+  doc.rect(0, 0, 210, 35, 'F'); // Full width header
+  
+  doc.setTextColor(255, 255, 255);
+  doc.setFont("helvetica", "bold");
   doc.setFontSize(20);
-  doc.setFont("helvetica", "bold");
-  doc.text("ModernTech Solutions", 105, 25, { align: "center" });
+  doc.text("ModernTech Solutions", 15, 18);
+  
+  doc.setFontSize(10);
+  doc.setFont("helvetica", "normal");
+  doc.text("PAYSLIP", 15, 25);
+  doc.text("Pay Period: June 2026", 195, 25, { align: "right" });
 
-  // Payslip title
-  doc.setFontSize(16);
-  doc.text("PAYSLIP", 105, 40, { align: "center" });
-
-  // Month
+  // 2. EMPLOYEE INFORMATION BOX
+  let y = 50;
+  doc.setTextColor(textColor[0], textColor[1], textColor[2]);
   doc.setFontSize(11);
+  doc.setFont("helvetica", "bold");
+  doc.text("Employee Details", 15, y);
+  
+  doc.setDrawColor(borderColor[0], borderColor[1], borderColor[2]);
+  doc.line(15, y + 2, 195, y + 2); // Underline
+  
+  y += 10;
   doc.setFont("helvetica", "normal");
-  doc.text("Pay Period: June 2026", 105, 50, { align: "center" });
+  doc.setFontSize(10);
+  doc.text(`Name: ${emp.name}`, 15, y);
+  doc.text(`Employee ID: ${emp.id}`, 105, y);
+  y += 7;
+  doc.text(`Department: ${emp.department}`, 15, y);
+  doc.text(`Position: ${emp.position}`, 105, y);
 
-  // Line
-  doc.line(20, 60, 190, 60);
+  // 3. EARNINGS & DEDUCTIONS TABLE
+  y += 15;
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(11);
+  doc.text("Earnings & Deductions", 15, y);
+  doc.line(15, y + 2, 195, y + 2);
+  
+  // Table Header
+  y += 10;
+  doc.setFillColor(lightGray[0], lightGray[1], lightGray[2]);
+  doc.rect(15, y - 5, 180, 8, 'F');
+  doc.setFontSize(10);
+  doc.text("Description", 17, y);
+  doc.text("Amount", 193, y, { align: "right" });
+  
+  // Table Rows
+  y += 10;
+  doc.setFont("helvetica", "normal");
+  
+  // Helper function to draw rows
+  const drawRow = (label, value, isBold = false) => {
+    if (isBold) doc.setFont("helvetica", "bold");
+    doc.text(label, 17, y);
+    doc.text(value, 193, y, { align: "right" });
+    doc.setDrawColor(230, 230, 230);
+    doc.line(15, y + 2, 195, y + 2); // dotted line effect
+    y += 10;
+    if (isBold) doc.setFont("helvetica", "normal");
+  };
 
-  // Employee information
+  drawRow("Basic Salary", formatCurrency(emp.gross));
+  drawRow("Hours Worked", `${emp.hoursWorked} hrs`);
+  drawRow("Hourly Rate", formatCurrency(emp.hourlyRate));
+  drawRow(`Tax Deductions (${Math.round(emp.taxRate * 100)}%)`, `- ${formatCurrency(emp.deductions)}`);
+
+  // 4. NET PAY BOX
+  y += 5;
+  doc.setFillColor(accentColor[0], accentColor[1], accentColor[2]);
+  doc.rect(15, y, 180, 15, 'F');
+  
+  doc.setTextColor(255, 255, 255);
+  doc.setFont("helvetica", "bold");
   doc.setFontSize(12);
-  doc.setFont("helvetica", "bold");
-  doc.text("Employee Information", 20, 75);
+  doc.text("NET PAY", 17, y + 10);
+  doc.text(formatCurrency(emp.net), 193, y + 10, { align: "right" });
 
+  // 5. FOOTER
+  doc.setTextColor(150, 150, 150);
+  doc.setFontSize(8);
   doc.setFont("helvetica", "normal");
-  doc.text(`Employee Name: ${emp.name}`, 20, 88);
-  doc.text(`Employee ID: ${emp.id}`, 20, 98);
-  doc.text(`Department: ${emp.department}`, 20, 108);
-
-  // Payroll information
-  doc.setFont("helvetica", "bold");
-  doc.text("Payroll Details", 20, 128);
-
-  doc.setFont("helvetica", "normal");
-  doc.text(`Hours Worked: ${emp.hoursWorked}`, 20, 142);
-  doc.text(`Hourly Rate: ${formatCurrency(emp.hourlyRate)}`, 20, 152);
-  doc.text(`Gross Pay: ${formatCurrency(emp.gross)}`, 20, 162);
-  doc.text(`Deductions: ${formatCurrency(emp.deductions)}`, 20, 172);
-
-  // Net pay
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(14);
-  doc.text(`NET PAY: ${formatCurrency(emp.net)}`, 20, 190);
-
-  // Footer
-  doc.setFontSize(9);
-  doc.setFont("helvetica", "normal");
-  doc.text("This payslip was generated electronically by ModernTech Solutions.", 105, 280, { align: "center" });
+  doc.text("This is a computer-generated payslip and does not require a signature.", 105, 285, { align: "center" });
+  doc.text("ModernTech Solutions HR Department | Confidential", 105, 290, { align: "center" });
 
   // Download
   const fileName = `${emp.name.replace(/\s+/g, "_")}_Payslip_June_2026.pdf`;
