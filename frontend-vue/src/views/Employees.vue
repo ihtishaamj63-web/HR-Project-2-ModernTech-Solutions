@@ -11,7 +11,8 @@
       <div class="emp-toolbar">
         <div class="emp-search-bar">
           <i class="bi bi-search"></i>
-          <input type="search" v-model="search" placeholder="Search by name, position, department or ID" />
+          <!-- FIX: Shortened placeholder text to fit better -->
+          <input type="search" v-model="search" placeholder="Search name, position, or ID..." />
         </div>
         <div class="emp-toolbar__actions">
           <router-link to="/add-employee" class="emp-btn emp-btn--primary" v-if="isHR">
@@ -262,9 +263,11 @@ onMounted(() => {
   border: 1px solid #d8dce6; 
   border-radius: 999px; 
   padding: 0 18px; 
-  min-width: 360px; 
   height: 46px; 
   transition: 0.2s; 
+  flex: 1; /* FIX: Allows search bar to grow and shrink */
+  min-width: 200px; /* FIX: Lower min-width so it fits on smaller screens */
+  max-width: 450px; /* Prevents it from getting too wide on large screens */
 }
 .emp-search-bar:focus-within { 
   border-color: #272757; 
@@ -272,17 +275,19 @@ onMounted(() => {
 }
 .emp-search-bar i { 
   color: #5a5a7a; 
+  flex-shrink: 0; /* Prevents icon from squishing */
 }
 .emp-search-bar input { 
   border: none; 
   outline: none; 
   background: transparent; 
   width: 100%; 
+  min-width: 0; /* FIX: Crucial for flexbox to allow text to shrink */
   font-size: 0.95rem; 
   color: #1a1a2e; 
   padding: 10px 0; 
 }
-.emp-toolbar__actions { display: flex; gap: 12px; }
+.emp-toolbar__actions { display: flex; gap: 12px; flex-shrink: 0; /* Prevents actions from squishing */ }
 .emp-btn { display: inline-flex; align-items: center; gap: 8px; padding: 11px 18px; border-radius: 999px; font-weight: 600; cursor: pointer; border: 1px solid transparent; font-size: 0.93rem; height: 46px; text-decoration: none; transition: 0.2s; }
 .emp-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(15,14,71,0.15); }
 .emp-btn--primary { background: #272757; color: #fff; }
@@ -325,7 +330,7 @@ onMounted(() => {
 @media (max-width: 768px) {
   .emp-row { grid-template-columns: 1fr; gap: 12px; padding: 14px 16px; border-radius: 12px; border: 1px solid rgba(39,39,71,0.1); background: white; }
   .emp-row__head { display: none; }
-  .emp-search-bar { min-width: auto; width: 100%; }
+  .emp-search-bar { min-width: auto; width: 100%; max-width: none; }
   .emp-toolbar { flex-direction: column; align-items: stretch; }
   .emp-toolbar__actions { flex-direction: column; width: 100%; }
   .emp-toolbar__actions .emp-btn { width: 100%; justify-content: center; }
