@@ -11,7 +11,6 @@
       <div class="emp-toolbar">
         <div class="emp-search-bar">
           <i class="bi bi-search"></i>
-          <!-- FIX: Shortened placeholder text to fit better -->
           <input type="search" v-model="search" placeholder="Search name, position, or ID..." />
         </div>
         <div class="emp-toolbar__actions">
@@ -50,18 +49,19 @@
         </div>
 
         <div v-else class="emp-list">
-          <div class="emp-row__head emp-row">
+          <!-- Dynamic Header based on Role -->
+          <div class="emp-row emp-row__head" :class="{ 'is-hr': isHR }">
             <div>Name</div>
             <div>Dept</div>
             <div>Position</div>
-            <div v-if="isHR">ID</div>
             <div v-if="isHR">Contact</div>
             <div v-if="isHR">Salary</div>
             <div>Status</div>
             <div v-if="isHR">Action</div>
           </div>
 
-          <div v-for="emp in filteredEmployees" :key="emp.employeeId" class="emp-row">
+          <!-- Dynamic Row based on Role -->
+          <div v-for="emp in filteredEmployees" :key="emp.employeeId" class="emp-row" :class="{ 'is-hr': isHR }">
             <div class="emp-row__name">
               <div class="emp-row__avatar" :style="{ background: getDepartmentColor(emp.department) }">
                 {{ getInitials(emp.name) }}
@@ -70,11 +70,13 @@
             </div>
             <div class="emp-row__muted">{{ emp.department }}</div>
             <div class="emp-row__muted">{{ emp.position }}</div>
-            <div v-if="isHR" class="emp-row__muted">MT-{{ String(emp.employeeId).padStart(3, '0') }}</div>
-            <div v-if="isHR"><a class="emp-row__link" :href="'mailto:' + emp.email">{{ emp.email }}</a></div>
+            
+            <div v-if="isHR" class="emp-row__muted"><a class="emp-row__link" :href="'mailto:' + emp.email">{{ emp.email }}</a></div>
             <div v-if="isHR" class="emp-row__muted" style="font-weight:600;">R {{ (emp.salary || 0).toLocaleString('en-ZA') }}</div>
+            
             <div><span class="emp-badge" :class="statusBadgeClass(emp.employment_status)">{{ formatStatus(emp.employment_status) }}</span></div>
-            <div v-if="isHR" style="display:flex;gap:6px;">
+            
+            <div v-if="isHR" class="emp-row__actions">
               <button class="emp-btn emp-btn--ghost" @click="editEmployee(emp.employeeId)">Edit</button>
               <button class="emp-btn emp-btn--danger" @click="confirmDelete(emp.employeeId)">Delete</button>
             </div>
@@ -115,10 +117,7 @@ const showDeleteModal = ref(false);
 const deleteId = ref(null);
 
 const today = new Date().toLocaleDateString('en-ZA', {
-  weekday: 'long',
-  day: 'numeric',
-  month: 'long',
-  year: 'numeric',
+  weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
 });
 
 const departments = computed(() => {
@@ -128,11 +127,9 @@ const departments = computed(() => {
 
 const filteredEmployees = computed(() => {
   let filtered = employees.value;
-
   if (currentFilter.value !== 'All') {
     filtered = filtered.filter(e => e.department === currentFilter.value);
   }
-
   if (search.value) {
     const term = search.value.toLowerCase();
     filtered = filtered.filter(e =>
@@ -142,7 +139,6 @@ const filteredEmployees = computed(() => {
       String(e.employeeId).includes(term)
     );
   }
-
   return filtered;
 });
 
@@ -153,15 +149,8 @@ function getInitials(name) {
 
 function getDepartmentColor(dept) {
   const colors = {
-    Development: '#4CAF50',
-    HR: '#2196F3',
-    QA: '#FF9800',
-    Sales: '#E74C5E',
-    Marketing: '#9C27B0',
-    Design: '#00BCD4',
-    IT: '#607D8B',
-    Finance: '#795548',
-    Support: '#3F51B5'
+    Development: '#4CAF50', HR: '#2196F3', QA: '#FF9800', Sales: '#E74C5E',
+    Marketing: '#9C27B0', Design: '#00BCD4', IT: '#607D8B', Finance: '#795548', Support: '#3F51B5'
   };
   return colors[dept] || '#8686AC';
 }
@@ -226,7 +215,6 @@ async function loadEmployees() {
     }
 
     if (empResponse.data.success) {
-      // FIX: Map emp_id to employeeId explicitly
       employees.value = empResponse.data.data.map(emp => ({
         ...emp,
         employeeId: emp.emp_id,
@@ -256,38 +244,13 @@ onMounted(() => {
 
 .emp-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
 .emp-search-bar { 
-  display: flex; 
-  align-items: center; 
-  gap: 10px; 
-  background: white; 
-  border: 1px solid #d8dce6; 
-  border-radius: 999px; 
-  padding: 0 18px; 
-  height: 46px; 
-  transition: 0.2s; 
-  flex: 1; /* FIX: Allows search bar to grow and shrink */
-  min-width: 200px; /* FIX: Lower min-width so it fits on smaller screens */
-  max-width: 450px; /* Prevents it from getting too wide on large screens */
+  display: flex; align-items: center; gap: 10px; background: white; border: 1px solid #d8dce6; 
+  border-radius: 999px; padding: 0 18px; height: 46px; transition: 0.2s; flex: 1; min-width: 200px; max-width: 450px; 
 }
-.emp-search-bar:focus-within { 
-  border-color: #272757; 
-  box-shadow: 0 0 0 3px rgba(39,39,87,0.1); 
-}
-.emp-search-bar i { 
-  color: #5a5a7a; 
-  flex-shrink: 0; /* Prevents icon from squishing */
-}
-.emp-search-bar input { 
-  border: none; 
-  outline: none; 
-  background: transparent; 
-  width: 100%; 
-  min-width: 0; /* FIX: Crucial for flexbox to allow text to shrink */
-  font-size: 0.95rem; 
-  color: #1a1a2e; 
-  padding: 10px 0; 
-}
-.emp-toolbar__actions { display: flex; gap: 12px; flex-shrink: 0; /* Prevents actions from squishing */ }
+.emp-search-bar:focus-within { border-color: #272757; box-shadow: 0 0 0 3px rgba(39,39,87,0.1); }
+.emp-search-bar i { color: #5a5a7a; flex-shrink: 0; }
+.emp-search-bar input { border: none; outline: none; background: transparent; width: 100%; min-width: 0; font-size: 0.95rem; color: #1a1a2e; padding: 10px 0; }
+.emp-toolbar__actions { display: flex; gap: 12px; flex-shrink: 0; }
 .emp-btn { display: inline-flex; align-items: center; gap: 8px; padding: 11px 18px; border-radius: 999px; font-weight: 600; cursor: pointer; border: 1px solid transparent; font-size: 0.93rem; height: 46px; text-decoration: none; transition: 0.2s; }
 .emp-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(15,14,71,0.15); }
 .emp-btn--primary { background: #272757; color: #fff; }
@@ -307,13 +270,32 @@ onMounted(() => {
 .emp-card__head h2 { font-size: 1.1rem; font-weight: 700; color: #0f0e47; }
 .emp-card__count { font-size: 0.9rem; color: #5a5a7a; font-weight: 600; }
 
-.emp-row { display: grid; grid-template-columns: 2.2fr 0.8fr 1.3fr 0.8fr 1.8fr 0.9fr 0.8fr 0.9fr; gap: 14px; padding: 18px 12px; border-bottom: 1px solid rgba(39,39,71,0.08); align-items: center; }
+/* FIX: Dynamic Grid Layouts for HR vs Employee */
+.emp-row { 
+  display: grid; 
+  gap: 14px; 
+  padding: 18px 12px; 
+  border-bottom: 1px solid rgba(39,39,71,0.08); 
+  align-items: center; 
+}
+
+/* HR View: 7 columns */
+.emp-row.is-hr {
+  grid-template-columns: 2fr 1fr 1.5fr 2fr 1fr 1fr 1.2fr;
+}
+
+/* Employee View: 4 columns (No blank spaces!) */
+.emp-row:not(.is-hr) {
+  grid-template-columns: 2fr 1fr 1.5fr 1fr;
+}
+
 .emp-row__head { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.5px; color: #5a5a7a; text-transform: uppercase; padding: 0 8px 10px 8px; border-bottom: 1px solid #d8dce6; }
 .emp-row__name { display: flex; align-items: center; gap: 12px; font-weight: 600; }
-.emp-row__avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 0.8rem; font-weight: 700; }
+.emp-row__avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 0.8rem; font-weight: 700; flex-shrink: 0; }
 .emp-row__muted { color: #5a5a7a; font-size: 0.92rem; }
 .emp-row__link { color: #272757; text-decoration: none; font-size: 0.92rem; transition: color 0.2s; }
 .emp-row__link:hover { color: #0f0e47; text-decoration: underline; }
+.emp-row__actions { display: flex; gap: 6px; }
 
 .emp-badge { display: inline-block; padding: 4px 10px; border-radius: 999px; font-size: 0.78rem; font-weight: 700; text-align: center; }
 .emp-badge--active { background: #d1fae5; color: #1b5e20; }
@@ -327,12 +309,40 @@ onMounted(() => {
 .emp-modal__content p { font-size: 0.95rem; color: #5a5a7a; margin-bottom: 20px; line-height: 1.5; }
 .emp-modal__actions { display: flex; justify-content: flex-end; gap: 12px; }
 
+/* Responsive Design */
+@media (max-width: 992px) {
+  .emp-row.is-hr {
+    grid-template-columns: 2fr 1fr 1.5fr 1fr 1.2fr; /* Hide Contact & Status on medium HR view */
+  }
+  .emp-row.is-hr > div:nth-child(4), .emp-row.is-hr > div:nth-child(7) {
+    display: none;
+  }
+}
+
 @media (max-width: 768px) {
-  .emp-row { grid-template-columns: 1fr; gap: 12px; padding: 14px 16px; border-radius: 12px; border: 1px solid rgba(39,39,71,0.1); background: white; }
+  .emp-row.is-hr, .emp-row:not(.is-hr) {
+    grid-template-columns: 1fr; /* Stack everything on mobile */
+    gap: 8px;
+    padding: 14px 16px;
+    border-radius: 12px;
+    border: 1px solid rgba(39,39,71,0.1);
+    background: white;
+    margin-bottom: 10px;
+  }
   .emp-row__head { display: none; }
   .emp-search-bar { min-width: auto; width: 100%; max-width: none; }
   .emp-toolbar { flex-direction: column; align-items: stretch; }
   .emp-toolbar__actions { flex-direction: column; width: 100%; }
   .emp-toolbar__actions .emp-btn { width: 100%; justify-content: center; }
+  
+  /* Add labels for stacked mobile view */
+  .emp-row > div::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: #5a5a7a;
+    font-size: 11px;
+    display: block;
+    margin-bottom: 2px;
+  }
 }
 </style>

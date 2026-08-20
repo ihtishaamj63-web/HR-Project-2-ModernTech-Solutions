@@ -8,7 +8,7 @@
       </div>
       <div class="att-header-actions" v-if="isHR">
         <button class="btn btn-outline-primary" @click="exportAttendance">
-          <i class="bi bi-download me-1"></i> Export CSV
+          <i class="bi bi-download me-1"></i> Export Excel
         </button>
         <button class="btn btn-primary" @click="openLogModal">
           <i class="bi bi-plus-lg me-1"></i> Log Attendance
@@ -338,7 +338,6 @@ const selectedEmpHistory = computed(() => {
     .sort((a, b) => new Date(b.attendance_date) - new Date(a.attendance_date));
 });
 
-// Pagination logic (handles both HR and Employee lists dynamically)
 const totalPages = computed(() => {
   const list = isHR.value ? filteredRoster.value : myHistory.value;
   return Math.ceil(list.length / itemsPerPage);
@@ -403,17 +402,13 @@ function getCalendarDays(targetDate, historyRecords) {
   const month = targetDate.getMonth();
   const firstDay = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
-  
   const days = [];
   for (let i = 0; i < firstDay; i++) days.push({ blank: true });
-  
   for (let d = 1; d <= daysInMonth; d++) {
     const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
     const record = historyRecords.value.find(r => r.attendance_date === dateStr);
-    
     days.push({
-      day: d,
-      date: dateStr,
+      day: d, date: dateStr,
       status: record ? formatStatus(record.status) : null,
       statusClass: record ? statusClass(record.status) : null
     });
@@ -520,11 +515,9 @@ async function submitAttendance() {
       emp_id: employeeId, attendance_date: date, status: status, check_in_time: checkIn || null,
       check_out_time: checkOut || null, hours_worked: calculatedHours.value || 0,
     });
-    
     showToast('Attendance logged successfully', 'success');
     const modal = Modal.getInstance(document.getElementById('attLogModal'));
     if (modal) modal.hide();
-    
     await loadData();
   } catch (error) {
     console.error('Submit error:', error);
@@ -534,24 +527,86 @@ async function submitAttendance() {
   }
 }
 
+// FIX: Upgraded CSV export to Styled Excel (.xls) format
 function exportAttendance() {
+  if (!isHR.value) {
+    showToast('Only HR staff can export attendance data.', 'danger');
+    return;
+  }
+
   try {
-    const headers = ['Employee Name', 'Date', 'Status', 'Check In', 'Check Out', 'Hours'];
-    const rows = allRecords.value.map(r => {
+    let html = `
+      <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+      <head>
+        <meta charset="UTF-8">
+        <!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>Attendance Report</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]-->
+        <style>
+          body { font-family: 'Segoe UI', Arial, sans-serif; }
+          .header { text-align: center; font-size: 18px; font-weight: bold; color: #272757; }
+          .sub-header { text-align: center; font-size: 12px; color: #5a5a7a; margin-bottom: 20px; }
+          table { width: 100%; border-collapse: collapse; }
+          th { background-color: #272757; color: white; padding: 10px; text-align: left; font-size: 12px; }
+          td { padding: 8px 10px; border: 1px solid #d8dce6; font-size: 12px; }
+          .present { background-color: #e8f5e9; color: #1b5e20; font-weight: bold; }
+          .absent { background-color: #ffebee; color: #b71c1c; font-weight: bold; }
+          .on-leave { background-color: #fff3e0; color: #bf360c; font-weight: bold; }
+          .late { background-color: #e3f2fd; color: #0d47a1; font-weight: bold; }
+        </style>
+      </head>
+      <body>
+        <div class="header">ModernTech Solutions</div>
+        <div class="sub-header">Attendance Report - Generated on ${new Date().toLocaleDateString()}</div>
+        <table>
+          <thead>
+            <tr>
+              <th>Employee Name</th>
+              <th>Department</th>
+              <th>Date</th>
+              <th>Status</th>
+              <th>Check In</th>
+              <th>Check Out</th>
+              <th>Hours</th>
+            </tr>
+          </thead>
+          <tbody>
+    `;
+
+    allRecords.value.forEach(r => {
       const emp = employeeList.value.find(e => e.emp_id === r.emp_id);
-      return [
-        `"${emp ? emp.name : 'Unknown'}"`, `"${formatDate(r.attendance_date)}"`, `"${formatStatus(r.status)}"`,
-        `"${formatTime(r.check_in_time)}"`, `"${formatTime(r.check_out_time)}"`, r.hours_worked || 0
-      ];
+      // FIX: Renamed variable to cellClass to avoid conflict with statusClass() function
+      const cellClass = statusClass(r.status);
+      html += `
+        <tr>
+          <td>${emp ? emp.name : 'Unknown'}</td>
+          <td>${emp ? emp.department : 'N/A'}</td>
+          <td>${formatDate(r.attendance_date)}</td>
+          <td class="${cellClass}">${formatStatus(r.status)}</td>
+          <td>${formatTime(r.check_in_time)}</td>
+          <td>${formatTime(r.check_out_time)}</td>
+          <td>${r.hours_worked || 0}</td>
+        </tr>
+      `;
     });
 
-    const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    html += `
+          </tbody>
+        </table>
+      </body>
+      </html>
+    `;
+
+    const blob = new Blob([html], { type: 'application/vnd.ms-excel' });
+    const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
-    link.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csvContent);
-    link.download = `attendance_report_${todayStr}.csv`;
+    link.href = url;
+    link.download = `attendance_report_${todayStr}.xls`;
+    document.body.appendChild(link);
     link.click();
-    showToast('Attendance exported successfully', 'success');
+    document.body.removeChild(link);
+    
+    showToast('Styled Excel report exported successfully', 'success');
   } catch (error) {
+    console.error('Export error:', error);
     showToast('Failed to export attendance', 'danger');
   }
 }
@@ -580,21 +635,18 @@ async function loadData() {
       }));
       
       let present = 0, absent = 0, leave = 0;
-      
       employeeList.value.forEach(emp => {
         const todayRec = allRecords.value.find(r => r.emp_id === emp.emp_id && r.attendance_date === todayStr);
         if (todayRec) {
           emp.todayStatus = todayRec.status;
           emp.checkIn = todayRec.check_in_time;
-          
           if (todayRec.status === 'present' || todayRec.status === 'late') present++;
           else if (todayRec.status === 'absent') absent++;
           else if (todayRec.status === 'on_leave' || todayRec.status === 'half_day') leave++;
         }
       });
 
-      let totalRecords = 0;
-      let presentRecords = 0;
+      let totalRecords = 0, presentRecords = 0;
       chartData.value.forEach(day => {
         totalRecords += day.present + day.absent + day.leave;
         presentRecords += day.present;
