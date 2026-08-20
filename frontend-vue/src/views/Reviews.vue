@@ -23,7 +23,7 @@
         placeholder="Search employee reviews..."
       />
 
-      <button type="button">
+      <button type="button" @click="filterReviews">
         <i class="fa-solid fa-magnifying-glass"></i>
         Search
       </button>
@@ -102,7 +102,7 @@
 
               <!-- Rating -->
               <td>
-                {{ displayRating(review.rating) }}
+                {{ review.rating_stars }}
               </td>
 
               <!-- Performance Score -->
@@ -224,7 +224,7 @@
                 <label
                   class="form-label fw-semibold"
                 >
-                  Employee
+                  Employee <span class="text-danger">*</span>
                 </label>
 
                 <select
@@ -252,18 +252,18 @@
               </div>
 
 
-              <!-- RATING -->
+              <!-- OVERALL RATING -->
               <div class="mb-3">
 
                 <label
                   class="form-label fw-semibold"
                 >
-                  Rating
+                  Overall Rating <span class="text-danger">*</span>
                 </label>
 
                 <select
                   class="form-select"
-                  v-model="newReview.rating"
+                  v-model="newReview.score"
                   required
                 >
 
@@ -271,68 +271,24 @@
                     Select rating...
                   </option>
 
-                  <option value="excellent">
-                    Excellent
-                  </option>
-
-                  <option value="good">
-                    Good
-                  </option>
-
-                  <option value="average">
-                    Average
-                  </option>
-
-                  <option value="below_average">
-                    Below Average
-                  </option>
-
-                  <option value="poor">
-                    Poor
-                  </option>
-
-                </select>
-
-              </div>
-
-
-              <!-- PERFORMANCE SCORE -->
-              <div class="mb-3">
-
-                <label
-                  class="form-label fw-semibold"
-                >
-                  Performance Score
-                </label>
-
-                <select
-                  class="form-select"
-                  v-model="newReview.performanceScore"
-                  required
-                >
-
-                  <option value="">
-                    Select score...
-                  </option>
-
                   <option value="5">
-                    5 - Excellent
+                    ⭐⭐⭐⭐⭐ Excellent (5/5)
                   </option>
 
                   <option value="4">
-                    4 - Good
+                    ⭐⭐⭐⭐ Good (4/5)
                   </option>
 
                   <option value="3">
-                    3 - Average
+                    ⭐⭐⭐ Average (3/5)
                   </option>
 
                   <option value="2">
-                    2 - Below Average
+                    ⭐⭐ Below Average (2/5)
                   </option>
 
                   <option value="1">
-                    1 - Poor
+                    ⭐ Poor (1/5)
                   </option>
 
                 </select>
@@ -346,16 +302,19 @@
                 <label
                   class="form-label fw-semibold"
                 >
-                  Strengths
+                  Strengths <span class="text-danger">*</span>
                 </label>
 
                 <textarea
                   class="form-control"
                   v-model="newReview.strengths"
                   rows="3"
-                  placeholder="Describe the employee's strengths and achievements..."
+                  minlength="10"
+                  maxlength="500"
+                  placeholder="Describe the employee's strengths and achievements (min 10 characters)..."
                   required
                 ></textarea>
+                <small class="text-muted">Minimum 10 characters, maximum 500.</small>
 
               </div>
 
@@ -366,16 +325,19 @@
                 <label
                   class="form-label fw-semibold"
                 >
-                  Areas for Improvement
+                  Areas for Improvement <span class="text-danger">*</span>
                 </label>
 
                 <textarea
                   class="form-control"
                   v-model="newReview.areasForImprovement"
                   rows="3"
-                  placeholder="Describe areas where the employee can improve..."
+                  minlength="10"
+                  maxlength="500"
+                  placeholder="Describe areas where the employee can improve (min 10 characters)..."
                   required
                 ></textarea>
+                <small class="text-muted">Minimum 10 characters, maximum 500.</small>
 
               </div>
 
@@ -386,15 +348,19 @@
                 <label
                   class="form-label fw-semibold"
                 >
-                  Goals for Next Period
+                  Goals for Next Period <span class="text-danger">*</span>
                 </label>
 
                 <textarea
                   class="form-control"
                   v-model="newReview.goalsForNextPeriod"
                   rows="3"
-                  placeholder="Describe goals for the next review period..."
+                  minlength="10"
+                  maxlength="500"
+                  placeholder="Describe goals for the next review period (min 10 characters)..."
+                  required
                 ></textarea>
+                <small class="text-muted">Minimum 10 characters, maximum 500.</small>
 
               </div>
 
@@ -405,16 +371,19 @@
                 <label
                   class="form-label fw-semibold"
                 >
-                  Comments
+                  Comments <span class="text-danger">*</span>
                 </label>
 
                 <textarea
                   class="form-control"
                   v-model="newReview.comments"
                   rows="4"
-                  placeholder="Write additional performance review comments..."
+                  minlength="10"
+                  maxlength="1000"
+                  placeholder="Write additional performance review comments (min 10 characters)..."
                   required
                 ></textarea>
+                <small class="text-muted">Minimum 10 characters, maximum 1000.</small>
 
               </div>
 
@@ -526,9 +495,7 @@ const newReview = ref({
 
   employeeId: '',
 
-  rating: '',
-
-  performanceScore: '',
+  score: '',
 
   strengths: '',
 
@@ -566,31 +533,8 @@ const filteredReviews = computed(() => {
 
 });
 
-
-// ============================================================
-// RATING DISPLAY
-// ============================================================
-
-function displayRating(rating) {
-
-  const ratingMap = {
-
-    excellent: '⭐⭐⭐⭐⭐',
-
-    good: '⭐⭐⭐⭐',
-
-    average: '⭐⭐⭐',
-
-    below_average: '⭐⭐',
-
-    poor: '⭐'
-
-  };
-
-  return ratingMap[
-    String(rating).toLowerCase()
-  ] || rating || '';
-
+function filterReviews() {
+  // Computed property handles this automatically
 }
 
 
@@ -669,9 +613,7 @@ async function openAddModal() {
 
     employeeId: '',
 
-    rating: '',
-
-    performanceScore: '',
+    score: '',
 
     strengths: '',
 
@@ -720,7 +662,7 @@ async function loadEmployees() {
     );
 
     showToast(
-      'Failed to load employees.',
+      'Failed to load employees list.',
       'danger'
     );
 
@@ -752,30 +694,11 @@ async function loadReviews() {
     let data =
       response.data.data || [];
 
-
-    // EMPLOYEE VIEW
-    if (
-      !isHR.value &&
-      state.user &&
-      state.user.name
-    ) {
-
-      const currentName =
-        String(state.user.name)
-          .toLowerCase();
-
-      data = data.filter(review => {
-
-        const employeeName =
-          review.employee_name ||
-          `${review.first_name || ''} ${review.last_name || ''}`
-            .trim();
-
-        return employeeName
-          .toLowerCase() === currentName;
-
-      });
-
+    // Find logged in user's emp_id for filtering
+    let myEmpId = null;
+    if (!isHR.value && state.user) {
+      const myEmp = employees.value.find(e => e.email === state.user.email);
+      if (myEmp) myEmpId = myEmp.emp_id;
     }
 
 
@@ -783,23 +706,35 @@ async function loadReviews() {
       data.map(review => {
 
         const employeeName =
-          review.employee_name ||
-          `${review.first_name || ''} ${review.last_name || ''}`
+          `${review.emp_first_name || ''} ${review.emp_last_name || ''}`
             .trim() ||
           'Unknown Employee';
+
+        const reviewerName =
+          `${review.rev_first_name || ''} ${review.rev_last_name || ''}`
+            .trim() ||
+          'Unknown Reviewer';
+
+        const score = Number(review.performance_score) || 0;
+        let stars = '';
+        if (score === 5) stars = '⭐⭐⭐⭐⭐';
+        else if (score === 4) stars = '⭐⭐⭐⭐';
+        else if (score === 3) stars = '⭐⭐⭐';
+        else if (score === 2) stars = '⭐⭐';
+        else if (score === 1) stars = '⭐';
 
         return {
 
           review_id:
             review.review_id,
 
+          emp_id: review.emp_id,
+
           employee_name:
             employeeName,
 
           reviewer_name:
-            review.reviewer_name ||
-            review.reviewer ||
-            'Unknown Reviewer',
+            reviewerName,
 
           date:
             formatDate(
@@ -807,12 +742,11 @@ async function loadReviews() {
               review.date
             ),
 
-          rating:
-            review.rating || '',
+          rating_stars:
+            stars,
 
           performance_score:
-            review.performance_score ||
-            0,
+            score,
 
           strengths:
             review.strengths || '',
@@ -831,6 +765,8 @@ async function loadReviews() {
 
         };
 
+      }).filter(review => {
+        return isHR.value ? true : review.emp_id === myEmpId;
       });
 
   } catch (error) {
@@ -851,7 +787,7 @@ async function loadReviews() {
 
 
 // ============================================================
-// SUBMIT REVIEW
+// SUBMIT REVIEW (Strict Error Handling)
 // ============================================================
 
 async function submitReview() {
@@ -870,8 +806,7 @@ async function submitReview() {
 
   const {
     employeeId,
-    rating,
-    performanceScore,
+    score,
     strengths,
     areasForImprovement,
     goalsForNextPeriod,
@@ -879,26 +814,30 @@ async function submitReview() {
   } = newReview.value;
 
 
-  // REQUIRED FIELDS
-
-  if (
-    !employeeId ||
-    !rating ||
-    !performanceScore ||
-    !strengths ||
-    !areasForImprovement ||
-    !comments
-  ) {
-
-    showToast(
-      'Please complete all required fields.',
-      'danger'
-    );
-
-    return;
-
+  // REQUIRED FIELDS CHECK
+  if (!employeeId) {
+    return showToast('Please select an employee.', 'danger');
+  }
+  if (!score) {
+    return showToast('Please select an overall rating.', 'danger');
   }
 
+  // Helper function to clean strings
+  const cleanStr = (str) => str ? str.trim() : '';
+
+  // STRICT VALIDATION FOR TEXT AREAS
+  if (cleanStr(strengths).length < 10) {
+    return showToast('Strengths must be at least 10 characters long.', 'danger');
+  }
+  if (cleanStr(areasForImprovement).length < 10) {
+    return showToast('Areas for Improvement must be at least 10 characters long.', 'danger');
+  }
+  if (cleanStr(goalsForNextPeriod).length < 10) {
+    return showToast('Goals for Next Period must be at least 10 characters long.', 'danger');
+  }
+  if (cleanStr(comments).length < 10) {
+    return showToast('Comments must be at least 10 characters long.', 'danger');
+  }
 
   saving.value = true;
 
@@ -928,13 +867,22 @@ async function submitReview() {
         .split('T')[0];
 
 
+    // Map numeric score to DB ENUM string
+    const ratingEnumMap = {
+      '5': 'excellent',
+      '4': 'good',
+      '3': 'average',
+      '2': 'below_average',
+      '1': 'poor'
+    };
+
     const reviewData = {
 
       emp_id:
         parseInt(employeeId),
 
       reviewer_id:
-        state.user?.user_id || 2,
+        state.user?.user_id,
 
       review_date:
         reviewDate,
@@ -946,33 +894,27 @@ async function submitReview() {
         reviewDate,
 
       rating:
-        rating,
+        ratingEnumMap[score],
 
       performance_score:
-        parseFloat(performanceScore),
+        parseFloat(score),
 
       strengths:
-        strengths,
+        cleanStr(strengths),
 
       areas_for_improvement:
-        areasForImprovement,
+        cleanStr(areasForImprovement),
 
       goals_for_next_period:
-        goalsForNextPeriod,
+        cleanStr(goalsForNextPeriod),
 
       comments:
-        comments,
+        cleanStr(comments),
 
       status:
         'submitted'
 
     };
-
-
-    console.log(
-      'Sending review:',
-      reviewData
-    );
 
 
     const response =
@@ -1018,9 +960,7 @@ async function submitReview() {
 
       employeeId: '',
 
-      rating: '',
-
-      performanceScore: '',
+      score: '',
 
       strengths: '',
 
@@ -1158,7 +1098,7 @@ async function generatePDF() {
         </td>
 
         <td>
-          ${displayRating(review.rating)}
+          ${review.rating_stars}
         </td>
 
         <td>
@@ -1434,10 +1374,9 @@ async function generatePDF() {
 // INITIAL LOAD
 // ============================================================
 
-onMounted(() => {
-
-  loadReviews();
-
+onMounted(async () => {
+  await loadEmployees();
+  await loadReviews();
 });
 
 </script>

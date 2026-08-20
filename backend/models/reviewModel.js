@@ -2,11 +2,17 @@
 import pool from '../config/database.js';
 
 // Get all reviews with employee names
+// Get all reviews with employee and reviewer names
 export const getAllReviews = async () => {
     const [rows] = await pool.query(
-        `SELECT r.*, e.first_name, e.last_name 
+        `SELECT r.*, 
+                e.first_name AS emp_first_name, 
+                e.last_name AS emp_last_name, 
+                u.first_name AS rev_first_name, 
+                u.last_name AS rev_last_name 
          FROM performance_reviews r
          JOIN employees e ON r.emp_id = e.emp_id
+         JOIN users u ON r.reviewer_id = u.user_id
          ORDER BY r.review_date DESC`
     );
     return rows;
