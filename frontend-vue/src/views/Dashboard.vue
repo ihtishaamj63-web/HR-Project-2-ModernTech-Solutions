@@ -41,7 +41,7 @@
       <!-- TOTAL EMPLOYEES -->
       <div class="dash-stat-card">
         <div class="dash-stat-icon blue">
-          <i class="fa-solid fa-users"></i>
+          <i class="bi bi-people-fill"></i>
         </div>
 
         <h4>Total Employees</h4>
@@ -60,7 +60,7 @@
       <!-- ATTENDANCE RATE -->
       <div class="dash-stat-card">
         <div class="dash-stat-icon purple">
-          <i class="fa-solid fa-calendar-check"></i>
+          <i class="bi bi-calendar-check-fill"></i>
         </div>
 
         <h4>Attendance Rate</h4>
@@ -81,7 +81,7 @@
       <!-- PENDING REQUESTS -->
       <div class="dash-stat-card">
         <div class="dash-stat-icon orange">
-          <i class="fa-solid fa-clock"></i>
+          <i class="bi bi-clock-fill"></i>
         </div>
 
         <h4>Pending Requests</h4>
@@ -102,7 +102,7 @@
       <!-- COMPLETED REVIEWS -->
       <div class="dash-stat-card">
         <div class="dash-stat-icon green">
-          <i class="fa-solid fa-star"></i>
+          <i class="bi bi-star-fill"></i>
         </div>
 
         <h4>Completed Reviews</h4>
@@ -123,7 +123,7 @@
       <!-- PAYROLL -->
       <div class="dash-stat-card">
         <div class="dash-stat-icon blue">
-          <i class="fa-solid fa-money-bill-wave"></i>
+          <i class="bi bi-cash-stack"></i>
         </div>
 
         <h4>Payroll Summary</h4>
