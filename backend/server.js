@@ -16,6 +16,9 @@ dotenv.config();
 
 const app = express();
 
+// FIX: Trust proxy so express-rate-limit works on Render
+app.set('trust proxy', 1);
+
 // --- RATE LIMITERS ---
 
 // 1. General API Limiter (Max 100 requests per 15 minutes)

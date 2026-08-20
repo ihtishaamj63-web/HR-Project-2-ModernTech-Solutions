@@ -12,7 +12,7 @@ export const getTotalEmployees = async () => {
 // Get active employees
 export const getActiveEmployees = async () => {
     const [rows] = await pool.query(
-        'SELECT COUNT(*) as active FROM employees WHERE employment_status = "active" AND is_deleted = FALSE'
+        "SELECT COUNT(*) as active FROM employees WHERE employment_status = 'active' AND is_deleted = FALSE"
     );
     return rows[0]?.active || 0;
 };
@@ -20,7 +20,7 @@ export const getActiveEmployees = async () => {
 // Get pending timeoff count
 export const getPendingTimeoff = async () => {
     const [rows] = await pool.query(
-        'SELECT COUNT(*) as pending FROM timeoff WHERE status = "pending"'
+        "SELECT COUNT(*) as pending FROM timeoff WHERE status = 'pending'"
     );
     return rows[0]?.pending || 0;
 };
