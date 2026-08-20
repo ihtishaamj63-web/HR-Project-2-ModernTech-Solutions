@@ -62,7 +62,7 @@
               <span class="step-badge" :class="{ 'active': form.salary }">3</span>
               <label>Monthly Salary (R) <span class="required">*</span></label>
             </div>
-            <input type="number" v-model="form.salary" required min="5000" max="500000" step="1000" placeholder="e.g. 45000" :disabled="!form.position" class="form-control" :class="{ 'disabled-select': !form.position }" />
+            <input type="number" v-model="form.salary" required min="5000" step="1" placeholder="e.g. 45000" :disabled="!form.position" class="form-control" :class="{ 'disabled-select': !form.position }" />
             <select v-model="selectedSalaryTier" class="form-control salary-range mt-2" @change="applySalaryTier" :disabled="!form.position" :class="{ 'disabled-select': !form.position }">
               <option value="">Select salary range...</option>
               <option v-for="tier in salaryTiers" :key="tier.id" :value="tier.id">
@@ -70,16 +70,17 @@
               </option>
             </select>
             <small class="help-text" v-if="!form.position"><i class="bi bi-lock-fill"></i> Select a position first</small>
-            <small class="help-text" v-else><i class="bi bi-check-circle-fill text-success"></i> Use the dropdown to choose a range, or type directly. Increments of R1,000.</small>
+            <small class="help-text" v-else><i class="bi bi-check-circle-fill text-success"></i> Autofills a clean midpoint (multiple of 5k). You can type any amount (min R5,000).</small>
           </div>
 
           <!-- STEP 4: BASIC INFO -->
           <div class="emp-form-group emp-workflow-step">
             <div class="step-label-container">
               <span class="step-badge" :class="{ 'active': form.name }">4</span>
-              <label>Full Name <span class="required">*</span></label>
+              <label>Full Name & Surname <span class="required">*</span></label>
             </div>
             <input type="text" v-model="form.name" required placeholder="e.g. Bongiwe Dube" class="form-control" />
+            <small class="help-text">Letters only. Must include first and last name.</small>
           </div>
 
           <div class="emp-form-group emp-workflow-step">
@@ -88,6 +89,7 @@
               <label>Email <span class="required">*</span></label>
             </div>
             <input type="email" v-model="form.email" required placeholder="name@moderntech.com" class="form-control" />
+            <small class="help-text">Must be a valid email format.</small>
           </div>
 
           <!-- Temporary Password Field -->
@@ -98,7 +100,7 @@
             </div>
             <input type="text" v-model="form.password" :required="!isEdit" minlength="6" placeholder="Min 6 characters" class="form-control" />
             <small class="help-text" v-if="isEdit">Leave blank to keep current password.</small>
-            <small class="help-text" v-else>The employee will use this to log in for the first time.</small>
+            <small class="help-text" v-else>Employee will use this to log in initially.</small>
           </div>
 
           <!-- Phone Field -->
@@ -108,6 +110,7 @@
               <label>Phone Number</label>
             </div>
             <input type="tel" v-model="form.phone" placeholder="e.g. 0821234567" class="form-control" />
+            <small class="help-text">10-15 digits. Spaces and + allowed.</small>
           </div>
 
           <div class="emp-form-group emp-workflow-step">
@@ -115,7 +118,8 @@
               <span class="step-badge" :class="{ 'active': form.startDate }">4</span>
               <label>Start Date <span class="required">*</span></label>
             </div>
-            <input type="date" v-model="form.startDate" required class="form-control" />
+            <input type="date" v-model="form.startDate" required :min="todayStr" class="form-control" />
+            <small class="help-text">Must be today or a future date.</small>
           </div>
 
           <div class="emp-form-group emp-form-group--full">
@@ -154,7 +158,7 @@ const form = ref({
   salary: '',
   email: '',
   password: '',
-  phone: '', // Added phone
+  phone: '',
   startDate: '',
   history: '',
 });
@@ -171,6 +175,9 @@ const today = new Date().toLocaleDateString('en-ZA', {
   year: 'numeric',
 });
 
+// FIX: Calculate today's date in YYYY-MM-DD to restrict the date picker
+const todayStr = new Date().toISOString().split('T')[0];
+
 const positionMap = {
   Development: ['Frontend Developer', 'Backend Developer', 'Fullstack Developer', 'Mobile Developer', 'DevOps Engineer', 'Software Architect', 'Software Engineer', 'Junior Developer', 'Senior Developer'],
   HR: ['HR Manager', 'HR Coordinator', 'Recruiter', 'Talent Acquisition Specialist', 'HR Administrator'],
@@ -183,26 +190,27 @@ const positionMap = {
   Support: ['Customer Support Representative', 'Technical Support Engineer', 'Customer Success Manager', 'Support Lead'],
 };
 
+// FIX: Adjusted ranges to 20k increments for clean midpoints
 const salaryTiers = computed(() => {
   const deptTiers = {
     Development: [
-      { id: 'junior', label: 'Junior Developer (R50,000 - R65,000)', min: 50000, max: 65000 },
-      { id: 'mid', label: 'Mid Developer (R65,000 - R80,000)', min: 65000, max: 80000 },
-      { id: 'senior', label: 'Senior Developer (R70,000 - R100,000)', min: 70000, max: 100000 },
-      { id: 'lead', label: 'Lead/Architect (R100,000 - R150,000)', min: 100000, max: 150000 },
+      { id: 'junior', label: 'Junior Developer (R40,000 - R60,000)', min: 40000, max: 60000 },
+      { id: 'mid', label: 'Mid Developer (R60,000 - R80,000)', min: 60000, max: 80000 },
+      { id: 'senior', label: 'Senior Developer (R80,000 - R100,000)', min: 80000, max: 100000 },
+      { id: 'lead', label: 'Lead/Architect (R100,000 - R120,000)', min: 100000, max: 120000 },
     ],
     HR: [
-      { id: 'entry', label: 'Entry Level (R40,000 - R55,000)', min: 40000, max: 55000 },
-      { id: 'mid', label: 'Mid Level (R55,000 - R75,000)', min: 55000, max: 75000 },
-      { id: 'senior', label: 'Manager (R75,000 - R100,000)', min: 75000, max: 100000 },
+      { id: 'entry', label: 'Entry Level (R30,000 - R50,000)', min: 30000, max: 50000 },
+      { id: 'mid', label: 'Mid Level (R50,000 - R70,000)', min: 50000, max: 70000 },
+      { id: 'senior', label: 'Manager (R70,000 - R90,000)', min: 70000, max: 90000 },
     ],
   };
   
   return deptTiers[form.value.department] || [
-    { id: 'entry', label: 'Entry Level (R40,000 - R55,000)', min: 40000, max: 55000 },
-    { id: 'mid', label: 'Mid Level (R55,000 - R75,000)', min: 55000, max: 75000 },
-    { id: 'senior', label: 'Senior Level (R75,000 - R100,000)', min: 75000, max: 100000 },
-    { id: 'lead', label: 'Lead/Manager (R100,000 - R150,000)', min: 100000, max: 150000 },
+    { id: 'entry', label: 'Entry Level (R30,000 - R50,000)', min: 30000, max: 50000 },
+    { id: 'mid', label: 'Mid Level (R50,000 - R70,000)', min: 50000, max: 70000 },
+    { id: 'senior', label: 'Senior Level (R70,000 - R90,000)', min: 70000, max: 90000 },
+    { id: 'lead', label: 'Lead/Manager (R90,000 - R110,000)', min: 90000, max: 110000 },
   ];
 });
 
@@ -220,8 +228,11 @@ function applySalaryTier() {
   if (selectedSalaryTier.value) {
     const tier = salaryTiers.value.find(t => t.id === selectedSalaryTier.value);
     if (tier) {
-      const midPoint = (Number(tier.min) + Number(tier.max)) / 2;
-      form.value.salary = Math.round(midPoint / 1000) * 1000;
+      const min = Number(tier.min);
+      const max = Number(tier.max);
+      // FIX: Calculate exact midpoint, then round to the nearest 5000 for a standard looking salary
+      const midpoint = (min + max) / 2;
+      form.value.salary = Math.round(midpoint / 5000) * 5000;
     }
   }
 }
@@ -247,9 +258,9 @@ async function loadEmployee(id) {
       salary: salary,
       email: emp.email,
       password: '', 
-      phone: emp.phone || '', // Load phone
+      phone: emp.phone || '',
       startDate: emp.hire_date ? emp.hire_date.split('T')[0] : '',
-      history: emp.employment_history || '', // Load history
+      history: emp.employment_history || '',
     };
     
     availablePositions.value = positionMap[form.value.department] || [];
@@ -268,17 +279,49 @@ async function saveEmployee() {
     return showToast('Access denied. Only HR staff can perform this action.', 'danger');
   }
 
+  // FIX: Heavy Validation Checks
   if (!form.value.department) return showToast('Step 1: Please select a department.', 'danger');
   if (!form.value.position) return showToast('Step 2: Please choose a position.', 'danger');
-  if (!form.value.salary || Number(form.value.salary) < 5000) return showToast('Step 3: Please enter a valid salary (minimum R5,000).', 'danger');
-  if (!form.value.name || form.value.name.split(' ').length < 2) return showToast('Step 4: Please enter the employee\'s full name (First & Last).', 'danger');
-  if (!form.value.email || !form.value.email.includes('@') || !form.value.email.includes('.')) return showToast('Step 4: Please enter a valid email address.', 'danger');
   
+  // FIX: Validate salary. It just needs to be a number >= 5000. It does NOT have to match the tier.
+  if (!form.value.salary || Number(form.value.salary) < 5000) {
+    return showToast('Step 3: Please enter a valid salary (minimum R5,000).', 'danger');
+  }
+  
+  // Name Validation (Letters only, at least two words)
+  const nameRegex = /^[a-zA-Z]+ [a-zA-Z]+$/;
+  if (!form.value.name || !nameRegex.test(form.value.name.trim())) {
+    return showToast('Step 4: Please enter a valid full name and surname (letters only).', 'danger');
+  }
+
+  // Email Validation
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!form.value.email || !emailRegex.test(form.value.email)) {
+    return showToast('Step 4: Please enter a valid email address.', 'danger');
+  }
+
+  // Password Validation
   if (!isEdit.value && (!form.value.password || form.value.password.length < 6)) {
     return showToast('Step 4: Please provide a temporary password (min 6 characters).', 'danger');
   }
-  
+  if (isEdit.value && form.value.password && form.value.password.length < 6) {
+    return showToast('Step 4: If updating password, it must be at least 6 characters.', 'danger');
+  }
+
+  // Start Date Validation (Today or Future)
   if (!form.value.startDate) return showToast('Step 4: Please select a start date.', 'danger');
+  const selectedDate = new Date(form.value.startDate);
+  const todayDate = new Date();
+  todayDate.setHours(0, 0, 0, 0); // Normalize today's date to midnight
+  if (selectedDate < todayDate) {
+    return showToast('Step 4: Start date must be today or in the future.', 'danger');
+  }
+
+  // Phone Validation (10-15 digits, allows spaces/+/-)
+  const phoneRegex = /^[0-9+\-\s()]{10,15}$/;
+  if (form.value.phone && !phoneRegex.test(form.value.phone)) {
+    return showToast('Step 4: Please enter a valid phone number (10-15 digits).', 'danger');
+  }
 
   saving.value = true;
   try {
@@ -291,7 +334,7 @@ async function saveEmployee() {
       email: form.value.email,
       hire_date: form.value.startDate,
       employment_history: form.value.history,
-      phone: form.value.phone, // Send phone
+      phone: form.value.phone,
     };
 
     if (form.value.password && form.value.password.length >= 6) {
