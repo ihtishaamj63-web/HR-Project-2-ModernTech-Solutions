@@ -522,12 +522,8 @@ async function loadReviews() {
           item.department ||
           item.department_name ||
           "N/A",
-        rating:
-          Number(
-            item.rating ||
-            item.performance_score ||
-            0
-          ),
+        // FIX: Use performance_score (number) instead of rating (string) for the stars
+        rating: Number(item.performance_score) || 0,
       }));
     }
   } catch (error) {
