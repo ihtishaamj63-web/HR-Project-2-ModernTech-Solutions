@@ -31,12 +31,32 @@ export const getStats = async (req, res) => {
             }
         } else {
             // HR / Admin global stats
+            
+            // FIX: Calculate global attendance rate for the last 7 days
+            const today = new Date();
+            const weekStart = new Date(today);
+            weekStart.setDate(today.getDate() - 7);
+            
+            const [attendanceRate] = await pool.query(
+                `SELECT 
+                    COUNT(CASE WHEN status = 'present' THEN 1 END) as present,
+                    COUNT(*) as total
+                 FROM attendance 
+                 WHERE attendance_date >= ?`,
+                [weekStart.toISOString().split('T')[0]]
+            );
+
+            const rate = attendanceRate[0]?.total > 0 
+                ? Math.round((attendanceRate[0].present / attendanceRate[0].total) * 100) 
+                : 0;
+
             stats = {
                 total_employees: await dashboardModel.getTotalEmployees(),
                 active_employees: await dashboardModel.getActiveEmployees(),
                 pending_timeoff: await dashboardModel.getPendingTimeoff(),
                 total_reviews: await dashboardModel.getTotalReviews(),
-                payroll_total: await dashboardModel.getPayrollTotal()
+                payroll_total: await dashboardModel.getPayrollTotal(),
+                attendance_rate: rate // FIX: Added attendance rate to HR stats
             };
         }
 
