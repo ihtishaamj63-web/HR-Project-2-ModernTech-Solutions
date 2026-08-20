@@ -106,6 +106,22 @@ export const cancelTimeoff = async (req, res) => {
     }
 };
 
+// PUT /api/timeoff/:id/reverse
+export const reverseTimeoff = async (req, res) => {
+    try {
+        const request = await timeoffModel.getTimeoffById(req.params.id);
+        if (!request) return res.status(404).json({ success: false, error: 'Request not found' });
+        if (request.status === 'pending') return res.status(400).json({ success: false, error: 'Request is already pending' });
+
+        const affectedRows = await timeoffModel.reverseTimeoff(req.params.id);
+        if (affectedRows === 0) return res.status(400).json({ success: false, error: 'Could not reverse request' });
+
+        res.json({ success: true, message: 'Request reversed to pending' });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+};
+
 // PUT /api/timeoff/cleanup
 export const cleanupOldRequests = async (req, res) => {
     try {
