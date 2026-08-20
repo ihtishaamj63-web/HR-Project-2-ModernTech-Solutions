@@ -31,7 +31,6 @@ export function useAuth() {
     localStorage.removeItem('authUser');
   }
 
-  // Use computed properties so Vue updates the UI automatically
   const isHR = computed(() => {
     const role = state.user?.role;
     return role === 'hr_staff' || role === 'HR Manager' || role === 'HR Admin';

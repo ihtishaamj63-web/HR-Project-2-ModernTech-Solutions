@@ -36,7 +36,7 @@ export const login = async (req, res) => {
                 username: user.username, 
                 email: user.email, 
                 role: user.role,
-                position: user.position || 'Employee' // FIX: Include position in token
+                position: user.position || null // FIX: Send null if no position, let frontend handle fallback
             },
             process.env.JWT_SECRET || 'modernTechSecretKey2026',
             { expiresIn: '24h' }
@@ -53,7 +53,7 @@ export const login = async (req, res) => {
                     first_name: user.first_name,
                     last_name: user.last_name,
                     role: user.role,
-                    position: user.position || 'Employee' // FIX: Send position to frontend
+                    position: user.position || null // FIX: Send null if no position
                 }
             }
         });

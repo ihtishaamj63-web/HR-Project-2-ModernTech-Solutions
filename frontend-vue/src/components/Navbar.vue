@@ -96,15 +96,18 @@ const passwordForm = ref({
   confirm: ''
 });
 
-// FIX: Display the specific job position instead of the generic role
+// FIX: Strictly check for a valid position string
 const formattedRole = computed(() => {
-  // If the user object has a position, use it!
-  if (state.user?.position) {
-    return state.user.position;
+  const position = state.user?.position;
+  const role = state.user?.role;
+
+  // If position exists, is a string, and isn't just the word "Employee"
+  if (position && typeof position === 'string' && position.toLowerCase() !== 'employee') {
+    return position;
   }
   
-  // Fallback mapping just in case position is missing from the token
-  if (state.user?.role === 'hr_staff' || state.user?.role === 'admin') {
+  // Fallback mapping based on role
+  if (role === 'hr_staff' || role === 'admin') {
     return 'Human Resources';
   }
   
