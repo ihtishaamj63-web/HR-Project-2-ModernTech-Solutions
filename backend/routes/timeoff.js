@@ -1,6 +1,6 @@
 import express from 'express';
 import authMiddleware from '../middleware/auth.js';
-import { getTimeoff, createTimeoff, approveTimeoff, denyTimeoff, cancelTimeoff, cleanupOldRequests } from '../controllers/timeoffController.js';
+import { getTimeoff, createTimeoff, approveTimeoff, denyTimeoff, cancelTimeoff, reverseTimeoff, cleanupOldRequests } from '../controllers/timeoffController.js';
 
 const router = express.Router();
 
@@ -14,5 +14,6 @@ router.put('/cleanup', authMiddleware, cleanupOldRequests);
 router.put('/:id/approve', authMiddleware, approveTimeoff);
 router.put('/:id/deny', authMiddleware, denyTimeoff);
 router.put('/:id/cancel', authMiddleware, cancelTimeoff);
+router.put('/:id/reverse', authMiddleware, reverseTimeoff); // FIX: Added reverse route
 
 export default router;

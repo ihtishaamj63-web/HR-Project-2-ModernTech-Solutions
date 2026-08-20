@@ -79,6 +79,17 @@ export const cancelTimeoff = async (id) => {
     return result.affectedRows;
 };
 
+// FIX: Reverse timeoff request back to pending
+export const reverseTimeoff = async (id) => {
+    const [result] = await pool.query(
+        `UPDATE timeoff 
+         SET status = 'pending', approver_id = NULL, approved_date = NULL, denial_reason = NULL
+         WHERE timeoff_id = ?`,
+        [id]
+    );
+    return result.affectedRows;
+};
+
 // Auto-deny old pending requests
 export const cleanupOldRequests = async () => {
     const [result] = await pool.query(

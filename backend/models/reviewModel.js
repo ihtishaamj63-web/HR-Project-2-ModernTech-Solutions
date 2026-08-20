@@ -7,6 +7,7 @@ export const getAllReviews = async () => {
         `SELECT r.*, 
                 e.first_name AS emp_first_name, 
                 e.last_name AS emp_last_name, 
+                e.department, 
                 u.first_name AS rev_first_name, 
                 u.last_name AS rev_last_name 
          FROM performance_reviews r
@@ -23,6 +24,7 @@ export const getReviewById = async (id) => {
         `SELECT r.*, 
                 e.first_name AS emp_first_name, 
                 e.last_name AS emp_last_name, 
+                e.department, 
                 u.first_name AS rev_first_name, 
                 u.last_name AS rev_last_name 
          FROM performance_reviews r
@@ -40,6 +42,7 @@ export const getReviewsByEmployee = async (empId) => {
         `SELECT r.*, 
                 e.first_name AS emp_first_name, 
                 e.last_name AS emp_last_name, 
+                e.department, 
                 u.first_name AS rev_first_name, 
                 u.last_name AS rev_last_name 
          FROM performance_reviews r
