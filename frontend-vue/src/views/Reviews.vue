@@ -12,6 +12,7 @@
       <i class="bi bi-calendar3 me-1"></i> {{ today }}
     </p>
 
+    <!-- SEARCH -->
     <div class="rev-search" v-if="isHR">
       <input
         type="text"
@@ -23,12 +24,14 @@
       </button>
     </div>
 
+    <!-- ADD REVIEW BUTTON -->
     <div class="rev-actions" v-if="isHR">
       <button type="button" id="revAddBtn" @click="openAddModal">
         <i class="fa-solid fa-plus"></i> Add New Review
       </button>
     </div>
 
+    <!-- REVIEWS TABLE -->
     <div class="rev-card" style="padding: 0; overflow: hidden">
       <div class="table-responsive">
         <table class="att-table table" style="margin: 0">
@@ -44,18 +47,8 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-if="loading">
-              <td :colspan="isHR ? 7 : 6" class="text-center py-5">
-                <div
-                  class="spinner-border text-primary"
-                  style="width: 3rem; height: 3rem"
-                  role="status"
-                >
-                  <span class="visually-hidden">Loading...</span>
-                </div>
-              </td>
-            </tr>
             <tr v-for="review in filteredReviews" :key="review.review_id">
+              <!-- Employee -->
               <td>
                 <div class="att-employee-cell">
                   <div
@@ -69,26 +62,41 @@
                   }}</span>
                 </div>
               </td>
+              <!-- Reviewer -->
               <td>{{ review.reviewer_name }}</td>
+              <!-- Date -->
               <td>{{ review.date }}</td>
+              <!-- Rating -->
               <td>{{ review.rating_stars }}</td>
+              <!-- Performance Score -->
               <td>
                 <span class="performance-score"
                   >{{ review.performance_score }}/5</span
                 >
               </td>
+              <!-- Comments -->
               <td>{{ review.comments }}</td>
+              <!-- Actions -->
               <td v-if="isHR">
-                <button
-                  class="btn btn-sm"
-                  style="background: #dc3545; color: white; border: none"
-                  @click="deleteReview(review.review_id)"
-                >
-                  Delete
-                </button>
+                <div class="d-flex gap-2">
+                  <button
+                    class="btn btn-sm btn-warning"
+                    @click="openEditModal(review)"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    class="btn btn-sm"
+                    style="background: #dc3545; color: white; border: none"
+                    @click="deleteReview(review.review_id)"
+                  >
+                    Delete
+                  </button>
+                </div>
               </td>
             </tr>
-            <tr v-if="!loading && filteredReviews.length === 0">
+            <!-- NO REVIEWS -->
+            <tr v-if="filteredReviews.length === 0">
               <td :colspan="isHR ? 7 : 6" class="text-center py-4">
                 No reviews found.
               </td>
@@ -98,12 +106,14 @@
       </div>
     </div>
 
+    <!-- DOWNLOAD PDF -->
     <div class="rev-download-section">
       <button type="button" class="rev-download-btn" @click="generatePDF">
         <i class="fa-solid fa-file-pdf"></i> Download Reviews PDF
       </button>
     </div>
 
+    <!-- ADD/EDIT REVIEW MODAL -->
     <div
       class="modal fade"
       id="reviewModal"
@@ -114,11 +124,14 @@
     >
       <div class="modal-dialog modal-lg">
         <div class="modal-content">
+          <!-- MODAL HEADER -->
           <div
             class="modal-header"
             style="background: var(--primary); color: white"
           >
-            <h5 class="modal-title" id="reviewModalLabel">Add New Review</h5>
+            <h5 class="modal-title" id="reviewModalLabel">
+              {{ isEditing ? "Edit Review" : "Add New Review" }}
+            </h5>
             <button
               type="button"
               class="btn-close btn-close-white"
@@ -126,8 +139,11 @@
               aria-label="Close"
             ></button>
           </div>
+
+          <!-- MODAL BODY -->
           <div class="modal-body">
             <form @submit.prevent="submitReview">
+              <!-- EMPLOYEE -->
               <div class="mb-3">
                 <label class="form-label fw-semibold"
                   >Employee <span class="text-danger">*</span></label
@@ -136,6 +152,7 @@
                   class="form-select"
                   v-model="newReview.employeeId"
                   required
+                  :disabled="isEditing"
                 >
                   <option value="">Select employee...</option>
                   <option
@@ -148,7 +165,12 @@
                     }})
                   </option>
                 </select>
+                <small v-if="isEditing" class="text-muted"
+                  >Employee cannot be changed after creation.</small
+                >
               </div>
+
+              <!-- OVERALL RATING -->
               <div class="mb-3">
                 <label class="form-label fw-semibold"
                   >Overall Rating <span class="text-danger">*</span></label
@@ -162,6 +184,8 @@
                   <option value="1">⭐ Poor (1/5)</option>
                 </select>
               </div>
+
+              <!-- STRENGTHS -->
               <div class="mb-3">
                 <label class="form-label fw-semibold"
                   >Strengths <span class="text-danger">*</span></label
@@ -179,6 +203,8 @@
                   >Minimum 10 characters, maximum 500.</small
                 >
               </div>
+
+              <!-- AREAS FOR IMPROVEMENT -->
               <div class="mb-3">
                 <label class="form-label fw-semibold"
                   >Areas for Improvement
@@ -197,6 +223,8 @@
                   >Minimum 10 characters, maximum 500.</small
                 >
               </div>
+
+              <!-- GOALS -->
               <div class="mb-3">
                 <label class="form-label fw-semibold"
                   >Goals for Next Period
@@ -215,6 +243,8 @@
                   >Minimum 10 characters, maximum 500.</small
                 >
               </div>
+
+              <!-- COMMENTS -->
               <div class="mb-3">
                 <label class="form-label fw-semibold"
                   >Comments <span class="text-danger">*</span></label
@@ -234,6 +264,8 @@
               </div>
             </form>
           </div>
+
+          <!-- MODAL FOOTER -->
           <div class="modal-footer">
             <button
               type="button"
@@ -248,8 +280,10 @@
               @click="submitReview"
               :disabled="saving"
             >
-              <span v-if="saving">Saving...</span
-              ><span v-else>Save Review</span>
+              <span v-if="saving">Saving...</span>
+              <span v-else>{{
+                isEditing ? "Update Review" : "Save Review"
+              }}</span>
             </button>
           </div>
         </div>
@@ -265,12 +299,17 @@ import { useAuth } from "../stores/auth";
 import api from "../api/axios";
 
 const { isHR, state } = useAuth();
+
 const reviews = ref([]);
 const employees = ref([]);
 const search = ref("");
 const saving = ref(false);
-const loading = ref(false);
 const reviewModal = ref(null);
+
+// FIX: Added state for editing
+const isEditing = ref(false);
+const editingReviewId = ref(null);
+
 const today = new Date().toLocaleDateString("en-ZA", {
   weekday: "long",
   day: "numeric",
@@ -295,7 +334,9 @@ const filteredReviews = computed(() => {
   );
 });
 
-function filterReviews() {}
+function filterReviews() {
+  /* Computed property handles this automatically */
+}
 
 function getInitials(name) {
   if (!name) return "??";
@@ -324,6 +365,8 @@ function showToast(message, type) {
 }
 
 async function openAddModal() {
+  isEditing.value = false;
+  editingReviewId.value = null;
   newReview.value = {
     employeeId: "",
     score: "",
@@ -332,7 +375,26 @@ async function openAddModal() {
     goalsForNextPeriod: "",
     comments: "",
   };
+
   await loadEmployees();
+  const modal = new Modal(reviewModal.value);
+  modal.show();
+}
+
+// FIX: New function to handle opening the modal for editing
+function openEditModal(review) {
+  isEditing.value = true;
+  editingReviewId.value = review.review_id;
+
+  newReview.value = {
+    employeeId: String(review.emp_id), // Must be string for v-model select
+    score: String(review.performance_score), // Must be string for v-model select
+    strengths: review.strengths || "",
+    areasForImprovement: review.areas_for_improvement || "",
+    goalsForNextPeriod: review.goals_for_next_period || "",
+    comments: review.comments || "",
+  };
+
   const modal = new Modal(reviewModal.value);
   modal.show();
 }
@@ -340,7 +402,9 @@ async function openAddModal() {
 async function loadEmployees() {
   try {
     const response = await api.get("/employees");
-    if (response.data.success) employees.value = response.data.data;
+    if (response.data.success) {
+      employees.value = response.data.data;
+    }
   } catch (error) {
     console.error("Error loading employees:", error);
     showToast("Failed to load employees list.", "danger");
@@ -348,17 +412,18 @@ async function loadEmployees() {
 }
 
 async function loadReviews() {
-  loading.value = true;
   try {
     const response = await api.get("/reviews");
     if (!response.data.success)
       throw new Error(response.data.error || "Failed to fetch reviews");
+
     let data = response.data.data || [];
     let myEmpId = null;
     if (!isHR.value && state.user) {
       const myEmp = employees.value.find((e) => e.email === state.user.email);
       if (myEmp) myEmpId = myEmp.emp_id;
     }
+
     reviews.value = data
       .map((review) => {
         const employeeName =
@@ -374,9 +439,10 @@ async function loadReviews() {
         else if (score === 3) stars = "⭐⭐⭐";
         else if (score === 2) stars = "⭐⭐";
         else if (score === 1) stars = "⭐";
+
         return {
           review_id: review.review_id,
-          emp_id: review.emp_id,
+          emp_id: review.emp_id, // Needed for editing
           employee_name: employeeName,
           reviewer_name: reviewerName,
           date: formatDate(review.review_date || review.date),
@@ -393,13 +459,13 @@ async function loadReviews() {
   } catch (error) {
     console.error("Error loading reviews:", error);
     showToast("Failed to load reviews.", "danger");
-  } finally {
-    loading.value = false;
   }
 }
 
 async function submitReview() {
-  if (!isHR.value) return showToast("Only HR staff can add reviews.", "danger");
+  if (!isHR.value)
+    return showToast("Only HR staff can add/edit reviews.", "danger");
+
   const {
     employeeId,
     score,
@@ -408,8 +474,10 @@ async function submitReview() {
     goalsForNextPeriod,
     comments,
   } = newReview.value;
+
   if (!employeeId) return showToast("Please select an employee.", "danger");
   if (!score) return showToast("Please select an overall rating.", "danger");
+
   const cleanStr = (str) => (str ? str.trim() : "");
   if (cleanStr(strengths).length < 10)
     return showToast(
@@ -431,11 +499,6 @@ async function submitReview() {
 
   saving.value = true;
   try {
-    const todayDate = new Date();
-    const reviewDate = todayDate.toISOString().split("T")[0];
-    const periodStart = new Date(todayDate);
-    periodStart.setMonth(periodStart.getMonth() - 3);
-    const reviewPeriodStart = periodStart.toISOString().split("T")[0];
     const ratingEnumMap = {
       5: "excellent",
       4: "good",
@@ -443,12 +506,9 @@ async function submitReview() {
       2: "below_average",
       1: "poor",
     };
+
     const reviewData = {
       emp_id: parseInt(employeeId),
-      reviewer_id: state.user?.user_id,
-      review_date: reviewDate,
-      review_period_start: reviewPeriodStart,
-      review_period_end: reviewDate,
       rating: ratingEnumMap[score],
       performance_score: parseFloat(score),
       strengths: cleanStr(strengths),
@@ -457,12 +517,39 @@ async function submitReview() {
       comments: cleanStr(comments),
       status: "submitted",
     };
-    const response = await api.post("/reviews", reviewData);
-    if (!response.data.success)
-      throw new Error(response.data.error || "Failed to create review");
-    showToast("Review added successfully!", "success");
+
+    // FIX: If editing, send PUT. If adding, send POST.
+    if (isEditing.value) {
+      const response = await api.put(
+        `/reviews/${editingReviewId.value}`,
+        reviewData,
+      );
+      if (!response.data.success)
+        throw new Error(response.data.error || "Failed to update review");
+      showToast("Review updated successfully!", "success");
+    } else {
+      // Add required dates for new reviews
+      const todayDate = new Date();
+      reviewData.reviewer_id = state.user?.user_id;
+      reviewData.review_date = todayDate.toISOString().split("T")[0];
+      reviewData.review_period_start = new Date(
+        todayDate.getFullYear(),
+        todayDate.getMonth() - 3,
+        1,
+      )
+        .toISOString()
+        .split("T")[0];
+      reviewData.review_period_end = todayDate.toISOString().split("T")[0];
+
+      const response = await api.post("/reviews", reviewData);
+      if (!response.data.success)
+        throw new Error(response.data.error || "Failed to create review");
+      showToast("Review added successfully!", "success");
+    }
+
     const modal = Modal.getInstance(reviewModal.value);
     if (modal) modal.hide();
+
     newReview.value = {
       employeeId: "",
       score: "",
@@ -473,9 +560,9 @@ async function submitReview() {
     };
     await loadReviews();
   } catch (error) {
-    console.error("Error creating review:", error);
+    console.error("Error saving review:", error);
     showToast(
-      error.response?.data?.error || "Failed to create review.",
+      error.response?.data?.error || "Failed to save review.",
       "danger",
     );
   } finally {
