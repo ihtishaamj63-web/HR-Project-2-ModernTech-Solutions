@@ -39,9 +39,10 @@ export const updateEmployee = async (id, employeeData) => {
 };
 
 // Soft delete employee
+// FIX: Changed double quotes to single quotes for 'terminated' to fix Aiven crash
 export const deleteEmployee = async (id) => {
     const [result] = await pool.query(
-        'UPDATE employees SET is_deleted = TRUE, employment_status = "terminated" WHERE emp_id = ?',
+        "UPDATE employees SET is_deleted = TRUE, employment_status = 'terminated' WHERE emp_id = ?",
         [id]
     );
     return result.affectedRows;
