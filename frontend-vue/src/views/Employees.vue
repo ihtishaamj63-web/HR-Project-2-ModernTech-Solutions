@@ -207,10 +207,11 @@ async function loadEmployees() {
     const empResponse = await api.get('/employees');
     const payResponse = await api.get('/payroll');
 
+    // FIX: Enforce Number() casting to ensure IDs match perfectly
     const salaryMap = {};
     if (payResponse.data.success && payResponse.data.data) {
       payResponse.data.data.forEach(p => {
-        salaryMap[p.emp_id] = p.base_salary || 0;
+        salaryMap[Number(p.emp_id)] = p.base_salary || 0;
       });
     }
 
@@ -219,7 +220,8 @@ async function loadEmployees() {
         ...emp,
         employeeId: emp.emp_id,
         name: `${emp.first_name || ''} ${emp.last_name || ''}`.trim() || 'Unknown',
-        salary: salaryMap[emp.emp_id] || 0,
+        // FIX: Use Number() for the lookup key
+        salary: salaryMap[Number(emp.emp_id)] || 0,
       }));
     }
   } catch (error) {
@@ -270,7 +272,7 @@ onMounted(() => {
 .emp-card__head h2 { font-size: 1.1rem; font-weight: 700; color: #0f0e47; }
 .emp-card__count { font-size: 0.9rem; color: #5a5a7a; font-weight: 600; }
 
-/* FIX: Dynamic Grid Layouts for HR vs Employee */
+/* Dynamic Grid Layouts for HR vs Employee */
 .emp-row { 
   display: grid; 
   gap: 14px; 
@@ -334,15 +336,5 @@ onMounted(() => {
   .emp-toolbar { flex-direction: column; align-items: stretch; }
   .emp-toolbar__actions { flex-direction: column; width: 100%; }
   .emp-toolbar__actions .emp-btn { width: 100%; justify-content: center; }
-  
-  /* Add labels for stacked mobile view */
-  .emp-row > div::before {
-    content: attr(data-label);
-    font-weight: 600;
-    color: #5a5a7a;
-    font-size: 11px;
-    display: block;
-    margin-bottom: 2px;
-  }
 }
 </style>
