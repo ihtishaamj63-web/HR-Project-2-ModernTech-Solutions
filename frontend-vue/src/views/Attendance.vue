@@ -527,7 +527,7 @@ async function submitAttendance() {
   }
 }
 
-// FIX: Upgraded CSV export to Styled Excel (.xls) format
+// Upgraded CSV export to Styled Excel (.xls) format
 function exportAttendance() {
   if (!isHR.value) {
     showToast('Only HR staff can export attendance data.', 'danger');
@@ -573,7 +573,6 @@ function exportAttendance() {
 
     allRecords.value.forEach(r => {
       const emp = employeeList.value.find(e => e.emp_id === r.emp_id);
-      // FIX: Renamed variable to cellClass to avoid conflict with statusClass() function
       const cellClass = statusClass(r.status);
       html += `
         <tr>
@@ -691,19 +690,158 @@ onMounted(() => {
 .att-summary-label { font-size: 13px; color: #5a5a7a; font-weight: 500; }
 .att-summary-number { font-size: 24px; font-weight: 700; color: #1a1a2e; }
 
-.chart-container { display: flex; align-items: flex-end; justify-content: space-between; gap: 8px; height: 180px; padding-top: 20px; }
-.chart-day { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px; height: 100%; }
-.chart-bars { display: flex; align-items: flex-end; gap: 2px; height: 100%; width: 100%; justify-content: center; }
-.chart-bar { width: 6px; min-height: 2px; border-radius: 2px 2px 0 0; transition: height 0.3s ease; }
+/* FIX: Responsive Chart Container */
+.chart-container { 
+  display: flex; 
+  align-items: flex-end; 
+  justify-content: space-between; 
+  gap: 8px; 
+  height: 200px; 
+  padding-top: 20px; 
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 10px;
+}
+
+.chart-day { 
+  flex: 1; 
+  display: flex; 
+  flex-direction: column; 
+  align-items: center; 
+  gap: 8px; 
+  height: 100%; 
+  min-width: 40px;
+}
+
+.chart-bars { 
+  display: flex; 
+  align-items: flex-end; 
+  gap: 2px; 
+  height: 100%; 
+  width: 100%; 
+  justify-content: center; 
+}
+
+.chart-bar { 
+  width: 6px; 
+  min-height: 2px; 
+  border-radius: 2px 2px 0 0; 
+  transition: height 0.3s ease; 
+}
+
 .chart-bar.present { background: #43a047; }
 .chart-bar.leave { background: #fb8c00; }
 .chart-bar.absent { background: #e53935; }
-.chart-label { font-size: 10px; color: #5a5a7a; font-weight: 600; }
-.chart-legend { display: flex; justify-content: center; gap: 20px; font-size: 12px; color: #5a5a7a; }
-.legend-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 5px; }
+
+.chart-label { 
+  font-size: 11px; 
+  color: #5a5a7a; 
+  font-weight: 600; 
+  white-space: nowrap;
+}
+
+.chart-legend { 
+  display: flex; 
+  justify-content: center; 
+  gap: 20px; 
+  font-size: 12px; 
+  color: #5a5a7a; 
+  flex-wrap: wrap;
+}
+
+.legend-dot { 
+  display: inline-block; 
+  width: 10px; 
+  height: 10px; 
+  border-radius: 50%; 
+  margin-right: 5px; 
+}
+
 .legend-dot.present { background: #43a047; }
 .legend-dot.leave { background: #fb8c00; }
 .legend-dot.absent { background: #e53935; }
+
+/* TABLET: 768px and below */
+@media (max-width: 768px) {
+  .chart-container {
+    height: 180px;
+    gap: 6px;
+    padding-top: 15px;
+  }
+  
+  .chart-day {
+    min-width: 35px;
+    gap: 6px;
+  }
+  
+  .chart-bar {
+    width: 5px;
+  }
+  
+  .chart-label {
+    font-size: 9px;
+  }
+  
+  .chart-legend {
+    gap: 15px;
+    font-size: 11px;
+  }
+}
+
+/* MOBILE: 576px and below */
+@media (max-width: 576px) {
+  .chart-container {
+    height: 160px;
+    gap: 5px;
+    padding-top: 10px;
+  }
+  
+  .chart-day {
+    min-width: 40px;
+    gap: 5px;
+  }
+  
+  .chart-bar {
+    width: 5px;
+  }
+  
+  .chart-label {
+    font-size: 8px;
+    line-height: 1;
+  }
+  
+  .chart-legend {
+    gap: 10px;
+    font-size: 10px;
+    margin-top: 10px !important;
+  }
+}
+
+/* EXTRA SMALL: 380px phones */
+@media (max-width: 380px) {
+  .chart-container {
+    height: 140px;
+    gap: 4px;
+    padding-top: 8px;
+  }
+  
+  .chart-day {
+    min-width: 35px;
+  }
+  
+  .chart-bar {
+    width: 4px;
+  }
+  
+  .chart-label {
+    font-size: 7px;
+  }
+  
+  .chart-legend {
+    gap: 8px;
+    font-size: 9px;
+  }
+}
 
 .att-table { margin: 0; }
 .att-table thead th { background: #f0f2f7; color: #1a1a2e; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #d8dce6; padding: 10px 14px; }
