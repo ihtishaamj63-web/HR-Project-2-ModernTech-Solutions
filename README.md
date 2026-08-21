@@ -12,7 +12,7 @@ The system centralizes human resource management, replacing disconnected spreads
 
 | Component | Link |
 |-----------|------|
-| **Frontend Application** | [https://hr-project-2-moderntech-solutions-1.onrender.com/ |
+| **Frontend Application** | [https://hr-project-2-moderntech-solutions-1.onrender.com] |
 | **Backend API** | [https://hr-project-2-moderntech-solutions.onrender.com/] |
 | **Documentation** | [https://docs.google.com/document/d/18W5yCOUqC3uRyfejpW7TIqSX5TopzjkaIAcCNtLxmaA/edit?usp=sharing] |
 
