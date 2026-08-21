@@ -29,43 +29,39 @@ export const getEmployee = async (req, res) => {
 
 // POST /api/employees
 export const addEmployee = async (req, res) => {
-    const connection = await pool.getConnection();
     try {
         const { first_name, last_name, email, phone, position, department, hire_date, employment_status, salary, password, employment_history } = req.body;
 
         if (!first_name || !last_name || !email || !position || !department || !hire_date) {
-            connection.release();
             return res.status(400).json({ success: false, error: 'All required fields must be filled' });
         }
 
         if (!password || password.length < 6) {
-            connection.release();
             return res.status(400).json({ success: false, error: 'A temporary password of at least 6 characters is required' });
         }
 
-        await connection.beginTransaction();
-
+        // 1. Create Employee
         const empId = await employeeModel.createEmployee({
             first_name, last_name, email, phone, position, department, hire_date, employment_status, employment_history
         });
 
+        // 2. Create Payroll
         if (salary && salary > 0) {
-            await connection.query(
+            await pool.query(
                 `INSERT INTO payroll (emp_id, base_salary, effective_date, is_active) VALUES (?, ?, ?, TRUE)`,
                 [empId, salary, hire_date]
             );
         }
 
+        // 3. Create User Login
         const username = email;
         const hashedPassword = await bcrypt.hash(password, 10);
         const userId = await authModel.createUser({
             username, email, password_hash: hashedPassword, first_name, last_name, role: 'employee'
         });
 
+        // 4. Link Employee to User
         await employeeModel.linkEmployeeToUser(empId, userId);
-
-        await connection.commit();
-        connection.release();
 
         res.status(201).json({
             success: true,
@@ -73,12 +69,11 @@ export const addEmployee = async (req, res) => {
             data: { emp_id: empId, user_id: userId }
         });
     } catch (error) {
-        await connection.rollback();
-        connection.release();
         if (error.code === 'ER_DUP_ENTRY') {
             return res.status(409).json({ success: false, error: 'Email already exists' });
         }
-        res.status(500).json({ success: false, error: 'Failed to add employee' });
+        console.error('Add Employee Error:', error);
+        return res.status(500).json({ success: false, error: 'Failed to add employee' });
     }
 };
 

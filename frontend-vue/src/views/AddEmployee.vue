@@ -333,8 +333,9 @@ async function saveEmployee() {
       salary: Number(form.value.salary),
       email: form.value.email,
       hire_date: form.value.startDate,
-      employment_history: form.value.history,
-      phone: form.value.phone,
+      employment_status: 'active', // FIX: Explicitly send status
+      employment_history: form.value.history || null, // FIX: Explicit null
+      phone: form.value.phone || null, // FIX: Explicit null
     };
 
     if (form.value.password && form.value.password.length >= 6) {
