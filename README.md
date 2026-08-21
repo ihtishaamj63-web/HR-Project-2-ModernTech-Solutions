@@ -67,7 +67,6 @@ The database is fully normalized to the Third Normal Form (3NF) to ensure data i
 
 ### Entity Relationship Diagram (ERD)
 
-[**Insert ERD Image Link or Google Drive Image Link Here**]
 
 For detailed database schema documentation, refer to the [Technical Documentation](#-documentation).
 
@@ -159,15 +158,6 @@ npm run dev
 ```
 
 Open `http://localhost:5173` in your browser.
-
----
-
-## 📖 Additional Resources
-
-- [API Documentation](link-to-api-docs)
-- [Deployment Guide](link-to-deployment-guide)
-- [Contributing Guidelines](link-to-contributing)
-- [Troubleshooting Guide](link-to-troubleshooting)
 
 ---
 
